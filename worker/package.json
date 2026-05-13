@@ -1,0 +1,24 @@
+{
+  "name": "@sonar/worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured'"
+  },
+  "dependencies": {
+    "@sonar/shared": "workspace:*",
+    "@mysten/sui": "^1.21.0",
+    "@noble/hashes": "^1.7.0",
+    "drizzle-orm": "^0.39.0",
+    "@neondatabase/serverless": "^1.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@sonar/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./schema.ts",
+  "types": "./schema.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured'"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

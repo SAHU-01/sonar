@@ -1,0 +1,16 @@
+# Day 1 Verification Checklist
+
+## 1. Seal Key Server Allowlisting
+**Status:** Investigating...
+
+## 2. Walrus Publisher Rate Limits & Max File Size
+**Status:** Investigating...
+
+## 3. @mysten/dapp-kit + Next.js 15 App Router Compatibility
+**Status:** Investigating...
+
+## 4. PTB Pattern for Batched Commit
+**Status:** Investigating...
+
+## 5. End-to-End Seal Flow
+**Status:** Investigating...

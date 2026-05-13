@@ -1,0 +1,8 @@
+[package]
+name = "sonar"
+edition = "2024.beta"
+
+[dependencies]
+
+[addresses]
+sonar = "0x0"
