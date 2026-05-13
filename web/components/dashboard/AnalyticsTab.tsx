@@ -30,7 +30,7 @@ export function AnalyticsTab({ submissions, fields }: AnalyticsTabProps) {
   const fieldBreakdowns = useMemo(() => computeFieldBreakdowns(submissions, fields), [submissions, fields]);
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total submissions" value={String(stats.total)} />

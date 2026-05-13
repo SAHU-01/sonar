@@ -33,14 +33,40 @@ export default function AdminPage() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
+  // Load saved statuses from localStorage
+  const statusKey = `sonar:status:${formId}`;
+  function loadSavedStatuses(): Record<string, SubmissionEntry['status']> {
+    try {
+      return JSON.parse(localStorage.getItem(statusKey) ?? '{}');
+    } catch { return {}; }
+  }
+  function saveStatuses(submissions: SubmissionEntry[]) {
+    const map: Record<string, string> = {};
+    for (const s of submissions) {
+      if (s.status !== 'new') map[s.blobId] = s.status;
+    }
+    localStorage.setItem(statusKey, JSON.stringify(map));
+  }
+
+  const setSubmissionStatus = (blobId: string, status: SubmissionEntry['status']) => {
+    setSubmissions(prev => {
+      const next = prev.map(s => s.blobId === blobId ? { ...s, status } : s);
+      saveStatuses(next);
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!formId || !PACKAGE_ID) return;
     loadDashboard(formId).then(({ schema, entries }) => {
+      // Restore persisted statuses
+      const saved = loadSavedStatuses();
+      const restored = entries.map(e => ({ ...e, status: (saved[e.blobId] as SubmissionEntry['status']) ?? 'new' }));
       setFormSchema(schema);
-      setSubmissions(entries);
+      setSubmissions(restored);
       setLoading(false);
       // Fetch submission data from Walrus
-      entries.forEach((entry, i) => {
+      restored.forEach((entry, i) => {
         fetchBlobAsText(entry.blobId)
           .then(text => {
             const parsed = JSON.parse(text);
@@ -58,6 +84,7 @@ export default function AdminPage() {
       console.error(err);
       setLoading(false);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formId]);
 
   const filteredSubmissions = useMemo(() => {
@@ -119,22 +146,22 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen">
       {/* Nav */}
-      <nav className="border-b border-border px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs">S</Link>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-semibold">{formSchema?.title ?? 'Dashboard'}</span>
+      <nav className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/" className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs shrink-0">S</Link>
+            <span className="text-muted-foreground hidden sm:inline">/</span>
+            <span className="font-semibold truncate">{formSchema?.title ?? 'Dashboard'}</span>
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <Link href={`/f/${formId}`} className="text-muted-foreground hover:text-foreground">View form</Link>
-            <Link href={`/verify/${formId}`} className="text-muted-foreground hover:text-foreground">Verify</Link>
+          <div className="flex items-center gap-3 sm:gap-4 text-sm shrink-0">
+            <Link href={`/f/${formId}`} className="text-muted-foreground hover:text-foreground hidden sm:inline">View form</Link>
+            <Link href={`/verify/${formId}`} className="text-muted-foreground hover:text-foreground text-xs sm:text-sm">Verify</Link>
           </div>
         </div>
       </nav>
 
       {/* Tabs */}
-      <div className="border-b border-border px-6">
+      <div className="border-b border-border px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex gap-0">
           {tabs.map(tab => (
             <button
@@ -153,18 +180,35 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto">
         {activeTab === 'responses' && (
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-4 gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-3 sm:gap-4">
               <div className="flex items-center gap-3 flex-1">
                 <input
                   placeholder="Search submissions..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="bg-card border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent w-full max-w-xs"
+                  className="bg-card border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent w-full sm:max-w-xs"
                 />
                 {selectedRows.size > 0 && (
-                  <span className="text-xs text-muted-foreground">{selectedRows.size} selected</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{selectedRows.size} selected</span>
+                    {(['reviewed', 'resolved', 'new'] as const).map(st => (
+                      <button
+                        key={st}
+                        onClick={() => {
+                          selectedRows.forEach(idx => {
+                            const s = filteredSubmissions[idx];
+                            if (s) setSubmissionStatus(s.blobId, st);
+                          });
+                          setSelectedRows(new Set());
+                        }}
+                        className="text-[10px] bg-card border border-border rounded px-2 py-1 hover:bg-muted transition-colors"
+                      >
+                        Mark {st}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -234,12 +278,18 @@ export default function AdminPage() {
                           <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
                           <td className="px-4 py-3 text-xs font-mono">{s.timestamp ? new Date(s.timestamp).toLocaleString() : '-'}</td>
                           <td className="px-4 py-3 text-xs font-mono">{s.submitter.slice(0, 6)}...{s.submitter.slice(-4)}</td>
-                          <td className="px-4 py-3">
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              s.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400' :
-                              s.status === 'reviewed' ? 'bg-blue-500/10 text-blue-400' :
-                              'bg-muted text-muted-foreground'
-                            }`}>{s.status}</span>
+                          <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                            <button
+                              onClick={() => {
+                                const cycle: Record<string, SubmissionEntry['status']> = { new: 'reviewed', reviewed: 'resolved', resolved: 'new' };
+                                setSubmissionStatus(s.blobId, cycle[s.status]);
+                              }}
+                              className={`text-[10px] font-medium px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+                                s.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' :
+                                s.status === 'reviewed' ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' :
+                                'bg-muted text-muted-foreground hover:bg-muted/80'
+                              }`}
+                            >{s.status}</button>
                           </td>
                           {formSchema?.fields.slice(0, 3).filter(f => !['section_header', 'description_block'].includes(f.type)).map(f => (
                             <td key={f.id} className="px-4 py-3 text-xs max-w-[150px] truncate">

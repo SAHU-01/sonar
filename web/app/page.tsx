@@ -46,15 +46,14 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Nav */}
-      <nav className="border-b border-border/50 px-6 py-4">
+      <nav className="border-b border-border/50 px-4 sm:px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-sm">S</div>
             <span className="font-semibold text-lg tracking-tight">Sonar</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
-            <a href="https://github.com" className="hover:text-foreground transition-colors">GitHub</a>
+          <div className="flex items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
+            <Link href="/docs" className="hidden sm:inline hover:text-foreground transition-colors">Docs</Link>
             <Link href="/new" className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               Create a form
             </Link>
@@ -63,25 +62,25 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-16">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-16 sm:pt-24 pb-12 sm:pb-16">
         <div className="max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border text-xs text-muted-foreground mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border text-xs text-muted-foreground mb-6 sm:mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Live on Sui Devnet + Walrus Testnet
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-4 sm:mb-6">
             The feedback layer<br />
             <span className="text-accent">for Sui.</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed">
             Drop-in feedback forms for any Sui project. Bug reports, feature requests, surveys, applications.
             Submissions stored on Walrus. Optionally encrypted via Seal. Tamper-evident by default.
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <Link href="/new" className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-colors">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <Link href="/new" className="w-full sm:w-auto bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-colors text-center">
               Create a form
             </Link>
-            <Link href="/docs" className="border border-border hover:border-muted-foreground px-6 py-3 rounded-lg font-medium transition-colors">
+            <Link href="/docs" className="w-full sm:w-auto border border-border hover:border-muted-foreground px-6 py-3 rounded-lg font-medium transition-colors text-center">
               Read the docs
             </Link>
           </div>
@@ -89,7 +88,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="px-6 py-20 border-t border-border/50">
+      <section className="px-4 sm:px-6 py-12 sm:py-20 border-t border-border/50">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((f) => (
@@ -106,9 +105,9 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="px-6 py-20 border-t border-border/50">
+      <section className="px-4 sm:px-6 py-12 sm:py-20 border-t border-border/50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-12 text-center">How it works</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-8 sm:mb-12 text-center">How it works</h2>
           <div className="space-y-8">
             {[
               { step: '1', title: 'Create a form', desc: 'Use the builder to design your form with 17 field types and Zod-powered validation. The schema is uploaded to Walrus and registered on Sui.' },
@@ -131,7 +130,7 @@ export default function Home() {
       </section>
 
       {/* Contracts */}
-      <section className="px-6 py-20 border-t border-border/50">
+      <section className="px-4 sm:px-6 py-12 sm:py-20 border-t border-border/50">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold mb-2 text-center">On-chain details</h2>
           <p className="text-sm text-muted-foreground text-center mb-8">All contracts and infrastructure are live and verifiable.</p>

@@ -61,7 +61,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-border px-6 py-4">
+      <nav className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs">S</div>
@@ -70,7 +70,7 @@ export default function VerifyPage() {
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <h1 className="text-3xl font-bold mb-2">Verification</h1>
         <p className="text-muted-foreground mb-8">{formTitle}</p>
 

@@ -19,10 +19,10 @@ export default function DocsPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Documentation</h1>
+        <div className="mb-10 sm:mb-16">
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-4">Documentation</h1>
           <p className="text-lg text-muted-foreground">
             Everything you need to integrate Sonar into your Sui project.
           </p>

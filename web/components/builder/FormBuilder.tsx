@@ -5,7 +5,7 @@
  */
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { FieldPalette } from './FieldPalette';
 import { FormCanvas } from './FormCanvas';
 import { FieldProperties } from './FieldProperties';
@@ -29,6 +29,13 @@ export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps
   const [isSaving, setIsSaving] = useState(false);
   const [encrypted, setEncrypted] = useState(existingSchema?.encryption?.enabled ?? false);
   const isEditing = !!existingFormId;
+  const [showPalette, setShowPalette] = useState(false);
+  const [showProperties, setShowProperties] = useState(false);
+
+  // Auto-show properties on desktop when a field is selected
+  useEffect(() => {
+    if (selectedFieldId && window.innerWidth >= 1024) setShowProperties(true);
+  }, [selectedFieldId]);
 
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
@@ -129,36 +136,69 @@ export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Top bar */}
-      <div className="border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <a href="/" className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs">S</a>
+      <div className="border-b border-border px-3 sm:px-4 py-3 flex items-center justify-between shrink-0 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <a href="/" className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs shrink-0">S</a>
           <input
             value={formTitle}
             onChange={(e) => setFormTitle(e.target.value)}
-            className="bg-transparent text-lg font-semibold outline-none border-b border-transparent hover:border-border focus:border-accent transition-colors px-1"
+            className="bg-transparent text-base sm:text-lg font-semibold outline-none border-b border-transparent hover:border-border focus:border-accent transition-colors px-1 min-w-0"
             placeholder="Form title"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <label className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
             <input type="checkbox" checked={encrypted} onChange={e => setEncrypted(e.target.checked)} className="accent-accent w-3.5 h-3.5" />
             Encrypt
           </label>
-          <ConnectButton />
+          <div className="hidden sm:block"><ConnectButton /></div>
           <button
             onClick={handleSave}
             disabled={isSaving || !account}
-            className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            {isSaving ? 'Publishing...' : isEditing ? 'Update' : 'Publish'}
+            {isSaving ? 'Saving...' : isEditing ? 'Update' : 'Publish'}
           </button>
         </div>
       </div>
 
-      {/* Three-panel layout */}
+      {/* Mobile toolbar: add field + properties toggle */}
+      <div className="lg:hidden flex items-center border-b border-border">
+        <button
+          onClick={() => { setShowPalette(!showPalette); setShowProperties(false); }}
+          className={`flex-1 text-xs py-2.5 font-medium transition-colors ${showPalette ? 'text-accent border-b-2 border-accent' : 'text-muted-foreground'}`}
+        >
+          + Add Field
+        </button>
+        <button
+          onClick={() => { setShowProperties(!showProperties); setShowPalette(false); }}
+          className={`flex-1 text-xs py-2.5 font-medium transition-colors ${showProperties ? 'text-accent border-b-2 border-accent' : 'text-muted-foreground'}`}
+        >
+          Properties
+        </button>
+        <div className="sm:hidden flex items-center px-3 border-l border-border">
+          <ConnectButton />
+        </div>
+      </div>
+
+      {/* Mobile: palette dropdown */}
+      {showPalette && (
+        <div className="lg:hidden border-b border-border max-h-64 overflow-y-auto">
+          <FieldPalette onAddField={(type) => { addField(type); setShowPalette(false); }} />
+        </div>
+      )}
+
+      {/* Mobile: properties dropdown */}
+      {showProperties && selectedField && (
+        <div className="lg:hidden border-b border-border max-h-80 overflow-y-auto">
+          <FieldProperties field={selectedField} onUpdate={updateField} />
+        </div>
+      )}
+
+      {/* Three-panel layout (desktop) */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Field Palette */}
-        <div className="w-56 border-r border-border overflow-y-auto shrink-0">
+        {/* Left: Field Palette — hidden on mobile, visible on lg+ */}
+        <div className="hidden lg:block w-56 border-r border-border overflow-y-auto shrink-0">
           <FieldPalette onAddField={addField} />
         </div>
 
@@ -177,8 +217,8 @@ export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps
           />
         </div>
 
-        {/* Right: Properties */}
-        <div className="w-72 border-l border-border overflow-y-auto shrink-0">
+        {/* Right: Properties — hidden on mobile, visible on lg+ */}
+        <div className="hidden lg:block w-72 border-l border-border overflow-y-auto shrink-0">
           <FieldProperties field={selectedField} onUpdate={updateField} />
         </div>
       </div>
