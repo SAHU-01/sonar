@@ -1,11 +1,12 @@
 /**
  * FormRenderer: renders a form schema fetched from Walrus. Uses react-hook-form
  * with Zod resolver for validation. Submits responses to Walrus and records on Sui.
+ * Supports conditional fields, file uploads to Walrus, interactive star rating.
  */
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { buildFormSchema } from '@/lib/zod-builder';
 import { uploadBlob } from '@/lib/walrus';
@@ -13,25 +14,31 @@ import { buildRecordSubmissionTx, PACKAGE_ID } from '@/lib/sui';
 import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { toast } from 'sonner';
+import { WalrusUpload } from './fields/WalrusUpload';
+import { StarRating } from './fields/StarRating';
 import type { FormSchemaType, FormField } from '@sonar/shared/schema';
 
 interface FormRendererProps {
   schema: FormSchemaType;
   formObjectId: string;
+  embed?: boolean;
 }
 
-export function FormRenderer({ schema, formObjectId }: FormRendererProps) {
+export function FormRenderer({ schema, formObjectId, embed }: FormRendererProps) {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
 
   const zodSchema = buildFormSchema(schema.fields);
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch, control, setValue } = useForm({
     resolver: zodResolver(zodSchema),
   });
 
+  const watchedValues = watch();
   const needsWallet = schema.accessControl?.type !== 'public';
+
+  const isEncrypted = schema.encryption?.enabled ?? false;
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true);
@@ -42,15 +49,38 @@ export function FormRenderer({ schema, formObjectId }: FormRendererProps) {
         data,
         submittedAt: new Date().toISOString(),
         submitterWallet: account?.address,
-        encrypted: false,
+        encrypted: isEncrypted,
       };
 
+      const jsonBytes = new TextEncoder().encode(JSON.stringify(submission));
+      let uploadBytes: Uint8Array | string = jsonBytes;
+
+      if (isEncrypted) {
+        toast.info('Encrypting response with Seal...');
+        try {
+          const { encryptSubmission } = await import('@/lib/seal');
+          const config = {
+            suiClient: (await import('@/lib/sui')).suiClient,
+            packageId: schema.encryption!.policyPackageId!,
+            policyModule: schema.encryption!.policyModule!,
+            keyServerObjectIds: (process.env.NEXT_PUBLIC_SEAL_KEY_SERVER_IDS ?? '').split(',').filter(Boolean),
+            threshold: Number(process.env.NEXT_PUBLIC_SEAL_THRESHOLD ?? 2),
+          };
+          const { encryptedData } = await encryptSubmission(jsonBytes, formObjectId, config);
+          uploadBytes = encryptedData;
+          toast.success('Encrypted!');
+        } catch (encErr) {
+          console.error('Encryption failed, submitting plaintext:', encErr);
+          toast.warning('Encryption unavailable — submitting plaintext');
+        }
+      }
+
       toast.info('Uploading response to Walrus...');
-      const blobId = await uploadBlob(JSON.stringify(submission));
+      const blobId = await uploadBlob(uploadBytes);
 
       if (account && PACKAGE_ID) {
         toast.info('Recording on Sui...');
-        const tx = buildRecordSubmissionTx(formObjectId, blobId, false, schema.version);
+        const tx = buildRecordSubmissionTx(formObjectId, blobId, isEncrypted, schema.version);
         await signAndExecute({ transaction: tx });
         toast.success('Response submitted and recorded on-chain!');
       } else {
@@ -67,7 +97,7 @@ export function FormRenderer({ schema, formObjectId }: FormRendererProps) {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className={`${embed ? 'py-12' : 'min-h-screen'} flex items-center justify-center px-6`}>
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-4 text-2xl">{'\u2713'}</div>
           <h2 className="text-2xl font-bold mb-2">Thank you!</h2>
@@ -77,16 +107,24 @@ export function FormRenderer({ schema, formObjectId }: FormRendererProps) {
     );
   }
 
+  // Filter visible fields based on conditional logic
+  const visibleFields = schema.fields.filter((field) => {
+    if (!field.conditional) return true;
+    const depValue = watchedValues[field.conditional.fieldId];
+    return depValue === field.conditional.equals;
+  });
+
   return (
-    <div className="min-h-screen flex justify-center px-6 py-12">
+    <div className={`${embed ? 'py-8' : 'min-h-screen py-12'} flex justify-center px-6`}>
       <div className="w-full max-w-xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{schema.title}</h1>
-          {schema.description && <p className="text-muted-foreground">{schema.description}</p>}
-        </div>
+        {!embed && (
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">{schema.title}</h1>
+            {schema.description && <p className="text-muted-foreground">{schema.description}</p>}
+          </div>
+        )}
 
-        {/* Wallet connect (if required) */}
         {needsWallet && !account && (
           <div className="mb-6 bg-card border border-border rounded-xl p-4 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">This form requires a wallet connection</p>
@@ -94,25 +132,33 @@ export function FormRenderer({ schema, formObjectId }: FormRendererProps) {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {schema.fields.map((field) => (
-            <RenderField key={field.id} field={field} register={register} errors={errors} />
+          {visibleFields.map((field) => (
+            <RenderField
+              key={field.id}
+              field={field}
+              register={register}
+              errors={errors}
+              control={control}
+              setValue={setValue}
+            />
           ))}
 
           <button
             type="submit"
             disabled={isSubmitting || (needsWallet && !account)}
             className="w-full bg-accent hover:bg-accent-hover disabled:opacity-50 text-white py-3 rounded-xl font-medium transition-colors"
+            style={schema.branding?.accentColor ? { backgroundColor: schema.branding.accentColor } : undefined}
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </form>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Powered by <a href="/" className="text-accent hover:underline">Sonar</a> — stored on Walrus
-        </p>
+        {!embed && (
+          <p className="text-center text-xs text-muted-foreground mt-8">
+            Powered by <a href="/" className="text-accent hover:underline">Sonar</a> — stored on Walrus
+          </p>
+        )}
       </div>
     </div>
   );
@@ -122,10 +168,14 @@ function RenderField({
   field,
   register,
   errors,
+  control,
+  setValue,
 }: {
   field: FormField;
   register: ReturnType<typeof useForm>['register'];
   errors: Record<string, { message?: string } | undefined>;
+  control: ReturnType<typeof useForm>['control'];
+  setValue: ReturnType<typeof useForm>['setValue'];
 }) {
   const error = errors[field.id];
 
@@ -150,7 +200,7 @@ function RenderField({
       </label>
       {field.helpText && <p className="text-xs text-muted-foreground mb-2">{field.helpText}</p>}
 
-      {renderInput(field, register)}
+      <FieldInput field={field} register={register} control={control} setValue={setValue} />
 
       {error?.message && (
         <p className="text-xs text-red-400 mt-1.5">{error.message}</p>
@@ -159,7 +209,17 @@ function RenderField({
   );
 }
 
-function renderInput(field: FormField, register: ReturnType<typeof useForm>['register']) {
+function FieldInput({
+  field,
+  register,
+  control,
+  setValue,
+}: {
+  field: FormField;
+  register: ReturnType<typeof useForm>['register'];
+  control: ReturnType<typeof useForm>['control'];
+  setValue: ReturnType<typeof useForm>['setValue'];
+}) {
   const cls = 'w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-accent transition-colors';
 
   switch (field.type) {
@@ -167,6 +227,8 @@ function renderInput(field: FormField, register: ReturnType<typeof useForm>['reg
       return <input {...register(field.id)} placeholder={field.placeholder} className={cls} />;
     case 'long_text':
       return <textarea {...register(field.id)} placeholder={field.placeholder} rows={4} className={`${cls} resize-none`} />;
+    case 'rich_text':
+      return <textarea {...register(field.id)} placeholder="Markdown supported..." rows={6} className={`${cls} font-mono resize-none`} />;
     case 'email':
       return <input type="email" {...register(field.id)} placeholder={field.placeholder || 'email@example.com'} className={cls} />;
     case 'url':
@@ -208,26 +270,44 @@ function renderInput(field: FormField, register: ReturnType<typeof useForm>['reg
     case 'star_rating': {
       const max = (field.config?.maxRating as number) ?? 5;
       return (
-        <div className="flex gap-1">
-          {Array.from({ length: max }, (_, i) => (
-            <label key={i} className="cursor-pointer">
-              <input type="radio" {...register(field.id)} value={String(i + 1)} className="sr-only" />
-              <span className="text-2xl hover:text-accent transition-colors text-muted-foreground/40">{'\u2605'}</span>
-            </label>
-          ))}
-        </div>
+        <Controller
+          name={field.id}
+          control={control}
+          render={({ field: f }) => (
+            <StarRating max={max} value={f.value ? Number(f.value) : undefined} onChange={(v) => f.onChange(v)} />
+          )}
+        />
       );
     }
     case 'image_upload':
+      return (
+        <WalrusUpload
+          accept="image/jpeg,image/png,image/webp"
+          maxSizeMB={5}
+          label="image"
+          value={undefined}
+          onChange={(blobId) => setValue(field.id, blobId)}
+        />
+      );
     case 'video_upload':
+      return (
+        <WalrusUpload
+          accept="video/mp4,video/webm"
+          maxSizeMB={10}
+          label="video"
+          value={undefined}
+          onChange={(blobId) => setValue(field.id, blobId)}
+        />
+      );
     case 'file_upload':
       return (
-        <div className="border-2 border-dashed border-border rounded-xl p-6 text-center">
-          <p className="text-sm text-muted-foreground">File upload coming soon</p>
-        </div>
+        <WalrusUpload
+          maxSizeMB={10}
+          label="file"
+          value={undefined}
+          onChange={(blobId) => setValue(field.id, blobId)}
+        />
       );
-    case 'rich_text':
-      return <textarea {...register(field.id)} placeholder="Markdown supported..." rows={6} className={`${cls} font-mono resize-none`} />;
     default:
       return <input {...register(field.id)} className={cls} />;
   }

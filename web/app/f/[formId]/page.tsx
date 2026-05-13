@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { FormRenderer } from '@/components/renderer/FormRenderer';
 import { suiClient } from '@/lib/sui';
 import { fetchBlobAsText } from '@/lib/walrus';
@@ -13,6 +13,8 @@ import type { FormSchemaType } from '@sonar/shared/schema';
 
 export default function FormPage() {
   const { formId } = useParams<{ formId: string }>();
+  const searchParams = useSearchParams();
+  const embed = searchParams.get('embed') === 'true';
   const [schema, setSchema] = useState<FormSchemaType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export default function FormPage() {
     );
   }
 
-  return <FormRenderer schema={schema} formObjectId={formId} />;
+  return <FormRenderer schema={schema} formObjectId={formId} embed={embed} />;
 }
 
 async function loadForm(formObjectId: string): Promise<FormSchemaType> {

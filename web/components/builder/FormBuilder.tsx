@@ -12,16 +12,23 @@ import { FieldProperties } from './FieldProperties';
 import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { uploadBlob } from '@/lib/walrus';
-import { buildCreateFormTx, PACKAGE_ID } from '@/lib/sui';
+import { buildCreateFormTx, buildUpdateFormTx, PACKAGE_ID } from '@/lib/sui';
 import { toast } from 'sonner';
-import type { FormField, FieldType } from '@sonar/shared/schema';
+import type { FormField, FieldType, FormSchemaType } from '@sonar/shared/schema';
 
-export function FormBuilder() {
-  const [fields, setFields] = useState<FormField[]>([]);
+interface FormBuilderProps {
+  existingFormId?: string;
+  existingSchema?: FormSchemaType;
+}
+
+export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps = {}) {
+  const [fields, setFields] = useState<FormField[]>(existingSchema?.fields ?? []);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-  const [formTitle, setFormTitle] = useState('Untitled Form');
-  const [formDescription, setFormDescription] = useState('');
+  const [formTitle, setFormTitle] = useState(existingSchema?.title ?? 'Untitled Form');
+  const [formDescription, setFormDescription] = useState(existingSchema?.description ?? '');
   const [isSaving, setIsSaving] = useState(false);
+  const [encrypted, setEncrypted] = useState(existingSchema?.encryption?.enabled ?? false);
+  const isEditing = !!existingFormId;
 
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
@@ -87,24 +94,31 @@ export function FormBuilder() {
     setIsSaving(true);
     try {
       const schema = {
-        version: 1,
+        version: (existingSchema?.version ?? 0) + 1,
         title: formTitle,
         description: formDescription || undefined,
         fields,
         successMessage: 'Thanks for your submission!',
         submissionLimit: 'open' as const,
         accessControl: { type: 'public' as const },
-        encryption: { enabled: false },
+        encryption: { enabled: encrypted, policyPackageId: encrypted ? PACKAGE_ID : undefined, policyModule: encrypted ? 'policy_owner_only' : undefined },
       };
 
       toast.info('Uploading form schema to Walrus...');
       const blobId = await uploadBlob(JSON.stringify(schema));
       toast.success(`Schema uploaded: ${blobId.slice(0, 16)}...`);
 
-      toast.info('Creating form on Sui...');
-      const tx = buildCreateFormTx(formTitle, blobId, false);
-      const result = await signAndExecute({ transaction: tx });
-      toast.success(`Form created! TX: ${result.digest.slice(0, 16)}...`);
+      if (isEditing && existingFormId) {
+        toast.info('Updating form on Sui (new version)...');
+        const tx = buildUpdateFormTx(existingFormId, blobId);
+        const result = await signAndExecute({ transaction: tx });
+        toast.success(`Form updated to v${schema.version}! TX: ${result.digest.slice(0, 16)}...`);
+      } else {
+        toast.info('Creating form on Sui...');
+        const tx = buildCreateFormTx(formTitle, blobId, false);
+        const result = await signAndExecute({ transaction: tx });
+        toast.success(`Form created! TX: ${result.digest.slice(0, 16)}...`);
+      }
     } catch (err) {
       toast.error(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
@@ -126,13 +140,17 @@ export function FormBuilder() {
           />
         </div>
         <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+            <input type="checkbox" checked={encrypted} onChange={e => setEncrypted(e.target.checked)} className="accent-accent w-3.5 h-3.5" />
+            Encrypt
+          </label>
           <ConnectButton />
           <button
             onClick={handleSave}
             disabled={isSaving || !account}
             className="bg-accent hover:bg-accent-hover disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            {isSaving ? 'Publishing...' : 'Publish'}
+            {isSaving ? 'Publishing...' : isEditing ? 'Update' : 'Publish'}
           </button>
         </div>
       </div>
