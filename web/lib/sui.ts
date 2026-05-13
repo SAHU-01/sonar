@@ -2,13 +2,13 @@
  * Sui client utilities and PTB builders for Sonar.
  * Uses @mysten/sui for transaction construction and submission.
  */
-import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { Transaction } from '@mysten/sui/transactions';
 
 const network = (process.env.SUI_NETWORK || process.env.NEXT_PUBLIC_SUI_NETWORK || 'devnet') as 'devnet' | 'testnet' | 'mainnet';
 const PACKAGE_ID = process.env.SUI_PACKAGE_ID || process.env.NEXT_PUBLIC_PACKAGE_ID || '';
 
-export const suiClient = new SuiClient({ url: getFullnodeUrl(network) });
+export const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
 
 export function buildCreateFormTx(title: string, blobId: string, encrypted: boolean): Transaction {
   const tx = new Transaction();

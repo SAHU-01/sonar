@@ -7,12 +7,12 @@ const PUBLISHER_URL = process.env.WALRUS_PUBLISHER_URL || process.env.NEXT_PUBLI
 const AGGREGATOR_URL = process.env.WALRUS_AGGREGATOR_URL || process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL || 'https://aggregator.walrus-testnet.walrus.space';
 
 export async function uploadBlob(data: Uint8Array | string): Promise<string> {
-  const body = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+  const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
 
   const res = await fetch(`${PUBLISHER_URL}/v1/blobs`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/octet-stream' },
-    body,
+    body: bytes as unknown as BodyInit,
   });
 
   if (!res.ok) {

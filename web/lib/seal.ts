@@ -1,36 +1,88 @@
 /**
  * Seal encryption/decryption wrapper. Uses @mysten/seal for client-side
- * encryption of form submissions. Handles ID construction, encrypt, and decrypt flows.
+ * encryption of form submissions. The `id` parameter for encrypt is constructed
+ * as hex(policyObjectId bytes + 5 random nonce bytes).
  */
-
-// TODO: implement after Day 1 verification of Seal SDK patterns
-// This is a placeholder that will be filled in once we verify:
-// 1. The exact SealClient API surface
-// 2. BCS encoding requirements for the `id` parameter
-// 3. Session key signing flow
-// 4. Key server allowlisting requirements
+import { SealClient, SessionKey, EncryptedObject } from '@mysten/seal';
+import type { SealCompatibleClient } from '@mysten/seal';
+import { Transaction } from '@mysten/sui/transactions';
+import { fromHex, toHex } from '@mysten/sui/utils';
 
 export interface SealConfig {
+  suiClient: SealCompatibleClient;
   packageId: string;
   policyModule: string;
-  keyServerIds: string[];
+  keyServerObjectIds: string[];
   threshold: number;
 }
 
+let _sealClient: SealClient | null = null;
+
+export function getSealClient(config: SealConfig): SealClient {
+  if (!_sealClient) {
+    _sealClient = new SealClient({
+      suiClient: config.suiClient,
+      serverConfigs: config.keyServerObjectIds.map((objectId) => ({
+        objectId,
+        weight: 1,
+      })),
+      verifyKeyServers: false, // testnet
+    });
+  }
+  return _sealClient;
+}
+
+export function constructSealId(policyObjectId: string): string {
+  const nonce = crypto.getRandomValues(new Uint8Array(5));
+  const policyBytes = fromHex(policyObjectId);
+  return toHex(new Uint8Array([...policyBytes, ...nonce]));
+}
+
 export async function encryptSubmission(
-  _data: Uint8Array,
-  _formObjectId: string,
-  _config: SealConfig,
-): Promise<Uint8Array> {
-  // TODO: implement with SealClient.encrypt()
-  throw new Error('Seal encryption not yet implemented — pending Day 1 verification');
+  data: Uint8Array,
+  formObjectId: string,
+  config: SealConfig,
+): Promise<{ encryptedData: Uint8Array; sealId: string }> {
+  const client = getSealClient(config);
+  const sealId = constructSealId(formObjectId);
+
+  const { encryptedObject } = await client.encrypt({
+    threshold: config.threshold,
+    packageId: config.packageId,
+    id: sealId,
+    data,
+  });
+
+  return { encryptedData: encryptedObject, sealId };
 }
 
 export async function decryptSubmission(
-  _encryptedData: Uint8Array,
-  _formObjectId: string,
-  _config: SealConfig,
+  encryptedData: Uint8Array,
+  config: SealConfig,
+  sessionKey: SessionKey,
+  buildMoveCall: (tx: Transaction, id: string) => void,
 ): Promise<Uint8Array> {
-  // TODO: implement with SealClient.decrypt()
-  throw new Error('Seal decryption not yet implemented — pending Day 1 verification');
+  const client = getSealClient(config);
+
+  const parsed = EncryptedObject.parse(encryptedData);
+  const id = parsed.id;
+
+  const tx = new Transaction();
+  buildMoveCall(tx, id);
+  const txBytes = await tx.build({ client: config.suiClient, onlyTransactionKind: true });
+
+  await client.fetchKeys({
+    ids: [id],
+    txBytes,
+    sessionKey,
+    threshold: config.threshold,
+  });
+
+  return client.decrypt({
+    data: encryptedData,
+    sessionKey,
+    txBytes,
+  });
 }
+
+export { SessionKey, EncryptedObject };

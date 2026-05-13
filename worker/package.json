@@ -10,11 +10,11 @@
     "lint": "echo 'no lint configured'"
   },
   "dependencies": {
-    "@sonar/shared": "workspace:*",
-    "@mysten/sui": "^1.21.0",
-    "@noble/hashes": "^1.7.0",
-    "drizzle-orm": "^0.39.0",
+    "@mysten/sui": "^2.16.2",
     "@neondatabase/serverless": "^1.0.0",
+    "@noble/hashes": "^1.7.0",
+    "@sonar/shared": "workspace:*",
+    "drizzle-orm": "^0.39.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
