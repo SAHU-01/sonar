@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-const PACKAGE_ID = '0xed8dbdc6ba2f8646485a0f3d3a6e55cd2d449c15aac22c67f225c21b40cd63e1';
-const FORM_OBJECT_ID = '0x56c23284381b7da74dd22bc1f1beb649b770352819ed719e06cb4c6a562ca96f';
+const PACKAGE_ID = '0x21f54aae5eb9a8cfef519e0dd528bbb622a28796f430705a2bdd16893f09a62b';
+const FORM_OBJECT_ID = '0x24371ba6cda7d8ccb6dfa636122b7b2b414e4782caf684388e8d51e27dbf72ed';
 
 const features = [
   {

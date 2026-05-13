@@ -3,6 +3,7 @@
 module sonar::form_registry {
     use std::string::String;
     use sui::event;
+    use sui::clock::Clock;
 
     /// A form registered on Sonar. Shared object — the owner can update it.
     public struct Form has key, store {
@@ -37,6 +38,7 @@ module sonar::form_registry {
         title: String,
         blob_id: String,
         encrypted: bool,
+        clock: &Clock,
         ctx: &mut TxContext,
     ) {
         let form = Form {
@@ -47,7 +49,7 @@ module sonar::form_registry {
             version: 1,
             encrypted,
             policy_package_id: option::none(),
-            created_at: 0, // TODO: use clock
+            created_at: clock.timestamp_ms(),
         };
 
         event::emit(FormCreated {

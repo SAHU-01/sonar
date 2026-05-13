@@ -6,7 +6,9 @@ import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { Transaction } from '@mysten/sui/transactions';
 
 const network = (process.env.SUI_NETWORK || process.env.NEXT_PUBLIC_SUI_NETWORK || 'devnet') as 'devnet' | 'testnet' | 'mainnet';
-const PACKAGE_ID = process.env.SUI_PACKAGE_ID || process.env.NEXT_PUBLIC_PACKAGE_ID || '';
+// Deployed on Sui devnet via test-publish
+const DEPLOYED_PACKAGE_ID = '0x21f54aae5eb9a8cfef519e0dd528bbb622a28796f430705a2bdd16893f09a62b';
+const PACKAGE_ID = process.env.SUI_PACKAGE_ID || process.env.NEXT_PUBLIC_PACKAGE_ID || DEPLOYED_PACKAGE_ID;
 
 export const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
 
@@ -18,6 +20,7 @@ export function buildCreateFormTx(title: string, blobId: string, encrypted: bool
       tx.pure.string(title),
       tx.pure.string(blobId),
       tx.pure.bool(encrypted),
+      tx.object('0x6'), // Sui Clock shared object
     ],
   });
   return tx;

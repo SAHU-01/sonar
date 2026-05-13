@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const PACKAGE_ID = '0xed8dbdc6ba2f8646485a0f3d3a6e55cd2d449c15aac22c67f225c21b40cd63e1';
+const PACKAGE_ID = '0x21f54aae5eb9a8cfef519e0dd528bbb622a28796f430705a2bdd16893f09a62b';
 
 export default function DocsPage() {
   return (

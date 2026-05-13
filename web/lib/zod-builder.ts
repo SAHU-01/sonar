@@ -1,97 +1,93 @@
 /**
  * Compiles a FormField's validation config array into a runtime Zod schema.
  * Used by the form renderer to create per-field Zod schemas from the stored
- * JSON form definition. Depends on shared/schema.ts types.
+ * JSON form definition.
  */
 import { z, type ZodTypeAny } from 'zod';
-import type { FormField, ValidationRule } from '@sonar/shared/schema';
+import type { FormField } from '@sonar/shared/schema';
+
+type BaseType = 'string' | 'number' | 'array' | 'any';
 
 export function buildFieldSchema(field: FormField): ZodTypeAny {
+  let baseType: BaseType;
   let schema: ZodTypeAny;
 
   switch (field.type) {
     case 'short_text':
     case 'long_text':
     case 'rich_text':
-      schema = z.string();
-      break;
-    case 'email':
-      schema = z.string().email(field.validations.find(v => v.type === 'email')?.message);
-      break;
-    case 'url':
-      schema = z.string().url(field.validations.find(v => v.type === 'url')?.message);
-      break;
-    case 'number':
-    case 'star_rating':
-      schema = z.coerce.number();
-      break;
     case 'date':
-      schema = z.string();
-      break;
     case 'dropdown':
     case 'radio':
-      schema = z.string();
+    case 'image_upload':
+    case 'video_upload':
+    case 'file_upload': {
+      let s = z.string();
+      baseType = 'string';
+      for (const rule of field.validations) {
+        if (rule.type === 'minLength') s = s.min(rule.value, rule.message);
+        else if (rule.type === 'maxLength') s = s.max(rule.value, rule.message);
+        else if (rule.type === 'regex') s = s.regex(new RegExp(rule.pattern), rule.message);
+      }
+      schema = s;
       break;
+    }
+    case 'email': {
+      let s = z.string().email();
+      baseType = 'string';
+      for (const rule of field.validations) {
+        if (rule.type === 'minLength') s = s.min(rule.value, rule.message);
+        else if (rule.type === 'maxLength') s = s.max(rule.value, rule.message);
+      }
+      schema = s;
+      break;
+    }
+    case 'url': {
+      let s = z.string().url();
+      baseType = 'string';
+      for (const rule of field.validations) {
+        if (rule.type === 'minLength') s = s.min(rule.value, rule.message);
+        else if (rule.type === 'maxLength') s = s.max(rule.value, rule.message);
+      }
+      schema = s;
+      break;
+    }
+    case 'number':
+    case 'star_rating': {
+      let s = z.coerce.number();
+      baseType = 'number';
+      for (const rule of field.validations) {
+        if (rule.type === 'min') s = s.min(rule.value, rule.message);
+        else if (rule.type === 'max') s = s.max(rule.value, rule.message);
+      }
+      schema = s;
+      break;
+    }
     case 'multi_select':
     case 'checkboxes':
       schema = z.array(z.string());
-      break;
-    case 'image_upload':
-    case 'video_upload':
-    case 'file_upload':
-      schema = z.string(); // blob ID after upload
+      baseType = 'array';
       break;
     case 'section_header':
     case 'description_block':
       schema = z.any().optional();
+      baseType = 'any';
       break;
     default:
       schema = z.string();
+      baseType = 'string';
   }
 
-  // Apply validation rules
-  for (const rule of field.validations) {
-    schema = applyValidationRule(schema, rule, field.type);
-  }
-
-  // Apply required/optional
-  if (!field.required && field.type !== 'section_header' && field.type !== 'description_block') {
-    schema = schema.optional();
+  if (!field.required && baseType !== 'any') {
+    if (baseType === 'string') {
+      // Allow empty string for optional string fields
+      schema = schema.optional().or(z.literal(''));
+    } else {
+      schema = schema.optional();
+    }
   }
 
   return schema;
-}
-
-function applyValidationRule(schema: ZodTypeAny, rule: ValidationRule, fieldType: string): ZodTypeAny {
-  switch (rule.type) {
-    case 'minLength':
-      if (schema instanceof z.ZodString) {
-        return schema.min(rule.value, rule.message);
-      }
-      return schema;
-    case 'maxLength':
-      if (schema instanceof z.ZodString) {
-        return schema.max(rule.value, rule.message);
-      }
-      return schema;
-    case 'min':
-      if (schema instanceof z.ZodNumber) {
-        return schema.min(rule.value, rule.message);
-      }
-      return schema;
-    case 'max':
-      if (schema instanceof z.ZodNumber) {
-        return schema.max(rule.value, rule.message);
-      }
-      return schema;
-    case 'regex':
-      if (schema instanceof z.ZodString) {
-        return schema.regex(new RegExp(rule.pattern), rule.message);
-      }
-      return schema;
-    default:
-      return schema;
-  }
 }
 
 export function buildFormSchema(fields: FormField[]): z.ZodObject<Record<string, ZodTypeAny>> {

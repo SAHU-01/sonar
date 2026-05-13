@@ -31,7 +31,7 @@ export function FormRenderer({ schema, formObjectId, embed }: FormRendererProps)
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
 
   const zodSchema = buildFormSchema(schema.fields);
-  const { register, handleSubmit, formState: { errors }, watch, control, setValue } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch, control } = useForm({
     resolver: zodResolver(zodSchema),
   });
 
@@ -140,7 +140,6 @@ export function FormRenderer({ schema, formObjectId, embed }: FormRendererProps)
               register={register}
               errors={errors}
               control={control}
-              setValue={setValue}
             />
           ))}
 
@@ -169,13 +168,11 @@ function RenderField({
   register,
   errors,
   control,
-  setValue,
 }: {
   field: FormField;
   register: ReturnType<typeof useForm>['register'];
   errors: Record<string, { message?: string } | undefined>;
   control: ReturnType<typeof useForm>['control'];
-  setValue: ReturnType<typeof useForm>['setValue'];
 }) {
   const error = errors[field.id];
 
@@ -200,7 +197,7 @@ function RenderField({
       </label>
       {field.helpText && <p className="text-xs text-muted-foreground mb-2">{field.helpText}</p>}
 
-      <FieldInput field={field} register={register} control={control} setValue={setValue} />
+      <FieldInput field={field} register={register} control={control} />
 
       {error?.message && (
         <p className="text-xs text-red-400 mt-1.5">{error.message}</p>
@@ -213,12 +210,10 @@ function FieldInput({
   field,
   register,
   control,
-  setValue,
 }: {
   field: FormField;
   register: ReturnType<typeof useForm>['register'];
   control: ReturnType<typeof useForm>['control'];
-  setValue: ReturnType<typeof useForm>['setValue'];
 }) {
   const cls = 'w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-accent transition-colors';
 
@@ -281,31 +276,32 @@ function FieldInput({
     }
     case 'image_upload':
       return (
-        <WalrusUpload
-          accept="image/jpeg,image/png,image/webp"
-          maxSizeMB={5}
-          label="image"
-          value={undefined}
-          onChange={(blobId) => setValue(field.id, blobId)}
+        <Controller
+          name={field.id}
+          control={control}
+          render={({ field: f }) => (
+            <WalrusUpload accept="image/jpeg,image/png,image/webp" maxSizeMB={5} label="image" value={f.value} onChange={f.onChange} />
+          )}
         />
       );
     case 'video_upload':
       return (
-        <WalrusUpload
-          accept="video/mp4,video/webm"
-          maxSizeMB={10}
-          label="video"
-          value={undefined}
-          onChange={(blobId) => setValue(field.id, blobId)}
+        <Controller
+          name={field.id}
+          control={control}
+          render={({ field: f }) => (
+            <WalrusUpload accept="video/mp4,video/webm" maxSizeMB={10} label="video" value={f.value} onChange={f.onChange} />
+          )}
         />
       );
     case 'file_upload':
       return (
-        <WalrusUpload
-          maxSizeMB={10}
-          label="file"
-          value={undefined}
-          onChange={(blobId) => setValue(field.id, blobId)}
+        <Controller
+          name={field.id}
+          control={control}
+          render={({ field: f }) => (
+            <WalrusUpload maxSizeMB={10} label="file" value={f.value} onChange={f.onChange} />
+          )}
         />
       );
     default:
