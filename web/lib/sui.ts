@@ -1,6 +1,6 @@
 /**
  * Sui client utilities and PTB builders for Sonar.
- * Uses @mysten/sui for transaction construction and submission.
+ * Uses @mysten/sui v2 for transaction construction and submission.
  */
 import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { Transaction } from '@mysten/sui/transactions';
@@ -35,7 +35,31 @@ export function buildUpdateFormTx(formObjectId: string, newBlobId: string): Tran
   return tx;
 }
 
-export function buildCommitBatchTx(registryObjectId: string, merkleRoot: string, blobId: string): Transaction {
+export function buildRecordSubmissionTx(
+  formId: string,
+  blobId: string,
+  encrypted: boolean,
+  formVersion: number,
+): Transaction {
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${PACKAGE_ID}::submission_batch::record_submission`,
+    arguments: [
+      tx.pure.address(formId),
+      tx.pure.string(blobId),
+      tx.pure.bool(encrypted),
+      tx.pure.u64(formVersion),
+    ],
+  });
+  return tx;
+}
+
+export function buildCommitBatchTx(
+  registryObjectId: string,
+  merkleRoot: string,
+  blobId: string,
+  submissionCount: number,
+): Transaction {
   const tx = new Transaction();
   tx.moveCall({
     target: `${PACKAGE_ID}::submission_batch::commit_batch`,
@@ -43,6 +67,7 @@ export function buildCommitBatchTx(registryObjectId: string, merkleRoot: string,
       tx.object(registryObjectId),
       tx.pure.string(merkleRoot),
       tx.pure.string(blobId),
+      tx.pure.u64(submissionCount),
     ],
   });
   return tx;
