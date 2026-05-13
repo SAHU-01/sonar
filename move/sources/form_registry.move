@@ -60,6 +60,11 @@ module sonar::form_registry {
         transfer::share_object(form);
     }
 
+    /// Returns the owner address of the form.
+    public fun owner(form: &Form): address {
+        form.owner
+    }
+
     /// Update form schema to a new Walrus blob. Only the owner can do this.
     public fun update_form(
         form: &mut Form,
