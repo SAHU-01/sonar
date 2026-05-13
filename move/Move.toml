@@ -6,3 +6,7 @@ edition = "2024.beta"
 
 [addresses]
 sonar = "0x0"
+
+[environments]
+devnet = { chain-id = "8e04f6e7" }
+testnet = { chain-id = "4c78adac" }

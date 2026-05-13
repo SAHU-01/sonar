@@ -67,7 +67,12 @@ async function testUploadAndFetch() {
   // Test 3: Upload a larger blob (1MB) to test limits
   console.log('\n3. Uploading 1MB blob...');
   const largeData = new Uint8Array(1024 * 1024);
-  crypto.getRandomValues(largeData);
+  // Fill in chunks of 64KB (Node.js crypto limit)
+  for (let i = 0; i < largeData.length; i += 65536) {
+    const chunk = new Uint8Array(Math.min(65536, largeData.length - i));
+    crypto.getRandomValues(chunk);
+    largeData.set(chunk, i);
+  }
   const startLarge = Date.now();
   const largeRes = await fetch(`${PUBLISHER_URL}/v1/blobs`, {
     method: 'PUT',
