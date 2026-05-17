@@ -50,20 +50,38 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col selection:bg-cta selection:text-cta-foreground" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
       {/* Nav */}
-      <nav className="px-4 sm:px-6 py-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <nav className="px-4 sm:px-6 py-6 flex flex-col gap-4">
+        <div className="max-w-6xl mx-auto w-full flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm">s</div>
+            <div className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm shrink-0">s</div>
             <span className="font-black text-2xl tracking-tighter lowercase">sonar</span>
           </div>
           <div className="flex items-center gap-4">
-            {account && (
-              <Link href="/dashboard" className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">dashboard</Link>
-            )}
-            <Link href="/docs" className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">docs</Link>
+            <div className="hidden sm:flex items-center gap-4">
+              {account && (
+                <Link href="/dashboard" className="font-black lowercase hover:text-accent transition-colors">dashboard</Link>
+              )}
+              <Link href="/docs" className="font-black lowercase hover:text-accent transition-colors">docs</Link>
+            </div>
             <ThemeToggle />
             <ConnectButton />
           </div>
+        </div>
+        {/* Mobile secondary nav: equal halves grid */}
+        <div className="sm:hidden grid grid-cols-2 border-y-4 border-border-strong bg-card/20">
+          <Link 
+            href={account ? "/dashboard" : "/docs"} 
+            className="py-4 text-center font-black lowercase text-xs border-r-4 border-border-strong hover:bg-accent transition-colors"
+          >
+            {account ? "dashboard" : "docs"}
+          </Link>
+          <Link 
+            href={account ? "/docs" : "/new"} 
+            onClick={!account ? handleCreateClick : undefined}
+            className="py-4 text-center font-black lowercase text-xs hover:bg-cta hover:text-cta-foreground transition-colors"
+          >
+            {account ? "docs" : "create form"}
+          </Link>
         </div>
       </nav>
 
