@@ -217,7 +217,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-8 font-black lowercase">
             <Link href="/docs" className="hover:text-accent transition-colors">docs</Link>
-            <a href="https://github.com" className="hover:text-accent transition-colors">github</a>
+            <a href="https://github.com/SAHU-01/sonar" className="hover:text-accent transition-colors">github</a>
           </div>
         </div>
       </footer>
