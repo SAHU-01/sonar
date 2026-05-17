@@ -151,15 +151,15 @@ export default function AdminPage() {
     <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
       {/* Nav */}
       <nav className="px-4 sm:px-6 py-6 bg-card/30 border-b-4 border-border-strong mb-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-6 gap-x-4">
           <div className="flex items-center gap-4 min-w-0">
-            <Link href="/" className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm shrink-0">s</Link>
+            <Link href="/dashboard" className="w-10 h-10 rounded-xl neo-btn bg-accent text-white flex items-center justify-center font-black text-xl shadow-brutal-sm shrink-0" title="Back to Dashboard">&larr;</Link>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-black uppercase tracking-widest opacity-40">dashboard</span>
+              <span className="text-xs font-black uppercase tracking-widest opacity-40">analytics</span>
               <h1 className="text-xl truncate lowercase">{formSchema?.title ?? 'loading...'}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-sm shrink-0">
+          <div className="flex items-center gap-4 text-sm shrink-0 ml-auto sm:ml-0">
             {account && (
               <Link href="/dashboard" className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">dashboard</Link>
             )}
@@ -400,18 +400,22 @@ function SettingRow({ label, value, mono }: { label: string; value: string; mono
 function SettingLink({ label, href }: { label: string; href: string }) {
   const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${href}` : href;
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <span className="text-xs font-black uppercase tracking-widest opacity-40">{label}</span>
-      <div className="flex items-center gap-4 flex-1 sm:justify-end">
-        <code className="neo-card bg-card-cream px-4 py-2 text-xs font-mono font-bold opacity-70 truncate max-w-md shadow-none">{href}</code>
+    <div className="flex flex-col border-b-2 border-border-strong/5 pb-8 last:border-0 last:pb-0 w-full overflow-hidden">
+      <span className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">{label}</span>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
+        <div className="min-w-0 flex-1">
+          <code className="neo-card bg-card-cream px-4 py-3 text-[10px] font-mono font-bold opacity-70 truncate block shadow-none border-dashed border-2">
+            {href}
+          </code>
+        </div>
         <button
           onClick={() => { 
             navigator.clipboard.writeText(fullUrl); 
             toast.success('link copied!');
           }}
-          className="neo-btn bg-cta text-cta-foreground px-4 py-2 text-xs"
+          className="neo-btn bg-cta text-cta-foreground px-8 py-3 text-xs font-black shadow-brutal-sm whitespace-nowrap shrink-0"
         >
-          copy
+          copy link
         </button>
       </div>
     </div>

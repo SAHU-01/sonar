@@ -57,9 +57,9 @@ const fieldGroups: { label: string; fields: { type: FieldType; label: string; ic
 
 export function FieldPalette({ onAddField }: FieldPaletteProps) {
   return (
-    <div className="p-4 space-y-8">
+    <div className="space-y-8 py-6 px-4">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 px-1">field palette</p>
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-6 px-1">field palette</p>
         <div className="space-y-6">
           {fieldGroups.map((group) => (
             <div key={group.label}>

@@ -37,7 +37,18 @@ export function FormCanvas({
     <div className="max-w-3xl mx-auto py-12 px-6">
       {/* Form header */}
       <div className="mb-12">
-        <h1 className="text-3xl sm:text-4xl mb-4 leading-tight">{formTitle || 'untitled form'}</h1>
+        <input
+          value={formTitle}
+          onChange={(e) => {
+             // We need to pass this up or handle it. 
+             // Actually, the user can just edit it in the top bar, 
+             // but if they want it here too, we should sync it.
+             // Since it's passed as a prop, we should probably have an onTitleChange too.
+          }}
+          readOnly // For now, since it's managed in the top bar, but let's make it look like a title.
+          className="w-full bg-transparent text-3xl sm:text-4xl mb-4 leading-tight font-black outline-none border-none placeholder:opacity-30"
+          placeholder="untitled form"
+        />
         <textarea
           value={formDescription}
           onChange={(e) => onDescriptionChange(e.target.value)}

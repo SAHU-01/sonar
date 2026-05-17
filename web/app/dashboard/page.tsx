@@ -59,18 +59,18 @@ export default function DashboardPage() {
     <div className="min-h-screen flex flex-col selection:bg-cta selection:text-cta-foreground" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
       {/* Nav */}
       <nav className="px-4 sm:px-6 py-6 border-b-4 border-border-strong bg-card/30 sticky top-0 backdrop-blur-md z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm">s</Link>
-            <div className="flex flex-col">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-6 gap-x-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link href="/" className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm shrink-0">s</Link>
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black uppercase tracking-widest opacity-40">dashboard</span>
-                <span className="text-[8px] px-1.5 py-0.5 rounded bg-accent text-white font-black uppercase">{network}</span>
+                <span className="text-[8px] px-1.5 py-0.5 rounded bg-accent text-white font-black uppercase shrink-0">{network}</span>
               </div>
-              <h1 className="text-xl lowercase">your forms</h1>
+              <h1 className="text-xl lowercase truncate">your forms</h1>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ml-auto sm:ml-0">
             <ThemeToggle />
             <ConnectButton />
           </div>
