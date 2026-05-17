@@ -162,9 +162,10 @@ export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps
 
             // Fallback to effects
             if (!createdId) {
-              createdId = txData.effects?.created?.find(c => 
-                c.owner === 'Shared' || (typeof c.owner === 'object' && 'Shared' in c.owner)
-              )?.reference?.objectId;
+              createdId = txData.effects?.created?.find(c => {
+                const owner = c.owner as any;
+                return owner === 'Shared' || (owner && typeof owner === 'object' && 'Shared' in owner);
+              })?.reference?.objectId;
             }
           } catch (e) {
             console.error('Failed to fetch TX details:', e);
