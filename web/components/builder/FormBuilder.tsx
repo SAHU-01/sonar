@@ -78,7 +78,7 @@ export function FormBuilder({ existingFormId, existingSchema }: FormBuilderProps
   const removeField = (id: string) => {
     setFields((prev) => prev.filter((f) => f.id !== id));
     if (selectedFieldId === id) setSelectedFieldId(null);
-    mascot.setMoodTemp('sad', 'Field removed', 2000);
+    mascot.setMoodTemp('thinking', 'Field removed', 2000);
   };
 
   const moveField = (from: number, to: number) => {
