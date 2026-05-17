@@ -1,63 +1,71 @@
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const PACKAGE_ID = '0x21f54aae5eb9a8cfef519e0dd528bbb622a28796f430705a2bdd16893f09a62b';
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col selection:bg-cta" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
       {/* Nav */}
-      <nav className="border-b border-border/50 px-6 py-4 sticky top-0 bg-background/80 backdrop-blur-sm z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs">S</div>
-            <span className="font-semibold tracking-tight">Sonar</span>
-            <span className="text-muted-foreground text-sm ml-1">/ docs</span>
+      <nav className="px-4 sm:px-6 py-6 bg-card/30 border-b-4 border-border-strong mb-8 sticky top-0 backdrop-blur-md z-50 shadow-brutal">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm">s</div>
+            <span className="font-black text-2xl tracking-tighter lowercase">sonar</span>
+            <span className="font-black opacity-20 lowercase text-lg hidden sm:inline">/ docs</span>
           </Link>
-          <Link href="/new" className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            Create a form
-          </Link>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link href="/new" className="neo-btn-cta text-cta-foreground px-6 py-2 text-sm">
+              create a form &rarr;
+            </Link>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-4xl mx-auto w-full px-4 sm:px-6 pb-20">
         {/* Header */}
-        <div className="mb-10 sm:mb-16">
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-4">Documentation</h1>
-          <p className="text-lg text-muted-foreground">
-            Everything you need to integrate Sonar into your Sui project.
+        <div className="mb-16">
+          <h1 className="text-5xl sm:text-6xl mb-4 leading-tight">documentation</h1>
+          <p className="text-xl font-bold opacity-60 lowercase leading-tight">
+            everything you need to integrate sonar into your sui project.
           </p>
         </div>
 
         {/* Architecture */}
-        <Section id="architecture" title="Architecture">
-          <p>Sonar has no backend database. All data lives on two decentralized layers:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-3">
-            <li><strong>Walrus</strong> — Stores form schemas and submission data as blobs. Immutable, content-addressed, globally available.</li>
-            <li><strong>Sui</strong> — Stores form metadata as shared objects, records submission blob IDs via events, and enforces access control for encrypted forms via Seal.</li>
-          </ul>
+        <Section id="architecture" title="architecture">
+          <p className="text-lg font-bold lowercase leading-tight opacity-70">sonar has no backend database. all data lives on two decentralized layers:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+            <div className="neo-card bg-accent/10 p-6 shadow-brutal-sm">
+              <h3 className="text-xl mb-2">walrus</h3>
+              <p className="text-sm font-bold opacity-60 lowercase leading-tight">stores form schemas and submission data as blobs. immutable, content-addressed, globally available.</p>
+            </div>
+            <div className="neo-card bg-cta/10 p-6 shadow-brutal-sm">
+              <h3 className="text-xl mb-2">sui</h3>
+              <p className="text-sm font-bold opacity-60 lowercase leading-tight">stores form metadata as shared objects, records submission blob ids via events, and enforces access control via seal.</p>
+            </div>
+          </div>
 
-          <h3 className="font-semibold mt-8 mb-3">Data flow</h3>
-          <div className="bg-card border border-border rounded-xl p-5 font-mono text-sm leading-relaxed">
-            <div className="text-muted-foreground">{'// Creating a form'}</div>
-            <div>Form schema (JSON) <span className="text-accent">→</span> Walrus blob <span className="text-accent">→</span> blob ID</div>
-            <div>blob ID + title <span className="text-accent">→</span> Sui PTB <span className="text-accent">→</span> FormRegistry shared object</div>
-            <div className="mt-4 text-muted-foreground">{'// Submitting a response'}</div>
-            <div>Response (JSON) <span className="text-accent">→</span> Walrus blob <span className="text-accent">→</span> blob ID</div>
-            <div>blob ID + form ID <span className="text-accent">→</span> Sui PTB <span className="text-accent">→</span> SubmissionRecorded event</div>
-            <div className="mt-4 text-muted-foreground">{'// Reading submissions (admin dashboard)'}</div>
-            <div>Query Sui events by form ID <span className="text-accent">→</span> list of blob IDs</div>
-            <div>Fetch each blob from Walrus <span className="text-accent">→</span> submission data</div>
+          <h3 className="text-2xl mt-12 mb-6">data flow</h3>
+          <div className="neo-card bg-card-cream p-6 font-mono text-xs font-bold shadow-none border-dashed overflow-x-auto">
+            <div className="opacity-30 mb-2"># creating a form</div>
+            <div className="flex items-center gap-3">schema (json) <span className="text-accent text-lg">&rarr;</span> walrus <span className="text-accent text-lg">&rarr;</span> sui object</div>
+            <div className="opacity-30 mt-6 mb-2"># submitting a response</div>
+            <div className="flex items-center gap-3">response (json) <span className="text-accent text-lg">&rarr;</span> walrus <span className="text-accent text-lg">&rarr;</span> sui event</div>
+            <div className="opacity-30 mt-6 mb-2"># reading submissions</div>
+            <div className="flex items-center gap-3">query events <span className="text-accent text-lg">&rarr;</span> fetch blobs <span className="text-accent text-lg">&rarr;</span> dashboard</div>
           </div>
         </Section>
 
         {/* Contracts */}
-        <Section id="contracts" title="Smart contracts">
-          <p>Three Move modules deployed on Sui:</p>
+        <Section id="contracts" title="smart contracts">
+          <p className="text-lg font-bold lowercase leading-tight opacity-70 mb-10">three move modules deployed on sui:</p>
 
-          <h3 className="font-semibold mt-6 mb-2">form_registry</h3>
-          <p className="text-muted-foreground text-sm mb-3">Manages form metadata as shared objects. Each form points to its current schema blob on Walrus.</p>
-          <CodeBlock>{`module sonar::form_registry {
-    // Shared object — one per form
+          <div className="space-y-12">
+            <div>
+              <h3 className="text-2xl mb-2">form_registry</h3>
+              <p className="text-sm font-bold opacity-50 lowercase mb-4">manages form metadata as shared objects. each form points to its current schema blob on walrus.</p>
+              <CodeBlock>{`module sonar::form_registry {
     public struct Form has key, store {
         id: UID,
         owner: address,
@@ -66,18 +74,15 @@ export default function DocsPage() {
         version: u64,
         encrypted: bool,
     }
-
-    // Create a form (anyone can call)
     public fun create_form(title, blob_id, encrypted, ctx)
-
-    // Update schema (owner only)
     public fun update_form(form, new_blob_id, ctx)
 }`}</CodeBlock>
+            </div>
 
-          <h3 className="font-semibold mt-6 mb-2">submission_batch</h3>
-          <p className="text-muted-foreground text-sm mb-3">Records individual submissions and optional Merkle batches for tamper-evidence.</p>
-          <CodeBlock>{`module sonar::submission_batch {
-    // Emitted per submission — this IS the index
+            <div>
+              <h3 className="text-2xl mb-2">submission_batch</h3>
+              <p className="text-sm font-bold opacity-50 lowercase mb-4">records individual submissions and optional merkle batches for tamper-evidence.</p>
+              <CodeBlock>{`module sonar::submission_batch {
     public struct SubmissionRecorded has copy, drop {
         form_id: address,
         blob_id: String,      // Walrus blob ID
@@ -85,116 +90,107 @@ export default function DocsPage() {
         encrypted: bool,
         form_version: u64,
     }
-
-    // Record a submission (stores blob ID on-chain)
     public fun record_submission(form_id, blob_id, encrypted, form_version, ctx)
 }`}</CodeBlock>
-
-          <h3 className="font-semibold mt-6 mb-2">policy_owner_only</h3>
-          <p className="text-muted-foreground text-sm mb-3">Seal encryption policy. Key servers call this to verify decryption access.</p>
-          <CodeBlock>{`module sonar::policy_owner_only {
-    // Called by Seal key servers via dry_run
-    // Verifies: (1) id starts with form object ID bytes
-    //           (2) caller is the form owner
-    entry fun seal_approve(id: vector<u8>, form: &Form, ctx: &TxContext)
-}`}</CodeBlock>
+            </div>
+          </div>
         </Section>
 
         {/* Deployed addresses */}
-        <Section id="deployed" title="Deployed addresses">
+        <Section id="deployed" title="deployed addresses">
           <InfoTable rows={[
             ['Package ID', PACKAGE_ID],
-            ['Network', 'Sui Devnet (will move to Testnet for final demo)'],
-            ['Wallet', '0xd38dea5868b7e74f48be1538f9fc12e7f6fe6b27eef1b7f2edd9bcc5443c0028'],
-            ['Walrus Publisher', 'https://publisher.walrus-testnet.walrus.space'],
-            ['Walrus Aggregator', 'https://aggregator.walrus-testnet.walrus.space'],
-            ['Seal Key Servers', 'Mysten testnet-1 & testnet-2 (Open mode, no allowlisting)'],
+            ['Network', 'Sui Devnet'],
+            ['Publisher', 'https://publisher.walrus-testnet.walrus.space'],
+            ['Aggregator', 'https://aggregator.walrus-testnet.walrus.space'],
+            ['Seal Servers', 'Mysten testnet-1 & testnet-2'],
           ]} />
         </Section>
 
         {/* Walrus */}
-        <Section id="walrus" title="Walrus integration">
-          <p>All data storage uses the Walrus HTTP API:</p>
+        <Section id="walrus" title="walrus integration">
+          <p className="text-lg font-bold lowercase leading-tight opacity-70 mb-6">all data storage uses the walrus http api:</p>
           <CodeBlock>{`// Upload a blob
 PUT https://publisher.walrus-testnet.walrus.space/v1/blobs
 Content-Type: application/octet-stream
 Body: <raw bytes>
 
-// Response
-{ "newlyCreated": { "blobObject": { "blobId": "abc123..." } } }
-
 // Fetch a blob
 GET https://aggregator.walrus-testnet.walrus.space/v1/blobs/<blobId>`}</CodeBlock>
 
-          <h3 className="font-semibold mt-6 mb-2">What we store on Walrus</h3>
-          <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-            <li><strong>Form schemas</strong> — JSON blobs containing field definitions, validation rules, branding</li>
-            <li><strong>Submissions</strong> — JSON blobs containing respondent data (plaintext or Seal-encrypted)</li>
-            <li><strong>File uploads</strong> — Images, videos, attachments uploaded directly from the browser</li>
-            <li><strong>Merkle batch blobs</strong> — Batches of submission hashes for verification</li>
-          </ul>
+          <h3 className="text-2xl mt-10 mb-6">what we store</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {['form schemas', 'submissions', 'file uploads', 'merkle batches'].map(item => (
+              <div key={item} className="neo-card bg-card p-4 shadow-brutal-sm">
+                <span className="text-sm font-black lowercase">{item}</span>
+              </div>
+            ))}
+          </div>
         </Section>
 
         {/* Seal */}
-        <Section id="seal" title="Seal encryption">
-          <p>When encryption is enabled on a form, submissions are encrypted client-side before upload:</p>
-          <ol className="list-decimal pl-6 space-y-2 mt-3 text-sm text-muted-foreground">
-            <li>Respondent fills the form and clicks submit</li>
-            <li>Client constructs a Seal ID: <code className="bg-card px-1.5 py-0.5 rounded text-xs">hex(formObjectId + 5 random bytes)</code></li>
-            <li>Client calls <code className="bg-card px-1.5 py-0.5 rounded text-xs">SealClient.encrypt()</code> — data is encrypted before leaving the browser</li>
-            <li>Encrypted bytes are uploaded to Walrus, blob ID recorded on Sui</li>
-            <li>Only the form owner can decrypt, via <code className="bg-card px-1.5 py-0.5 rounded text-xs">policy_owner_only::seal_approve</code></li>
-          </ol>
+        <Section id="seal" title="seal encryption">
+          <p className="text-lg font-bold lowercase leading-tight opacity-70 mb-8">submissions are encrypted client-side before upload:</p>
+          <div className="space-y-4">
+            {[
+              'respondent fills the form and clicks submit',
+              'client constructs a seal id with random entropy',
+              'data is encrypted locally before leaving the browser',
+              'encrypted bytes are uploaded to walrus',
+              'only the form owner can decrypt via sui PTB approval',
+            ].map((step, i) => (
+              <div key={i} className="flex gap-4 items-center">
+                <div className="w-8 h-8 rounded-lg bg-cta text-cta-foreground border-2 border-border-strong flex items-center justify-center font-black shadow-brutal-sm shrink-0">{i + 1}</div>
+                <span className="text-sm font-bold lowercase opacity-70">{step}</span>
+              </div>
+            ))}
+          </div>
         </Section>
 
         {/* Field types */}
-        <Section id="fields" title="Supported field types">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+        <Section id="fields" title="supported field types">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              'Short text', 'Long text', 'Rich text (Markdown)',
+              'Short text', 'Long text', 'Rich text',
               'Dropdown', 'Multi-select', 'Checkboxes',
               'Radio', 'Star rating', 'Number',
               'URL', 'Email', 'Date',
               'Image upload', 'Video upload', 'File upload',
               'Section header', 'Description block',
             ].map((f) => (
-              <div key={f} className="bg-card border border-border rounded-lg px-3 py-2">{f}</div>
+              <div key={f} className="neo-card bg-card px-4 py-3 font-black text-xs lowercase shadow-brutal-sm hover:bg-accent transition-colors cursor-default">{f}</div>
             ))}
           </div>
         </Section>
 
-        {/* Validation */}
-        <Section id="validation" title="Zod-powered validation">
-          <p>Every field can have validation rules that compile to Zod schemas at runtime:</p>
-          <ul className="list-disc pl-6 space-y-1 mt-3 text-sm text-muted-foreground">
-            <li>Min/max length (text), min/max value (numbers)</li>
-            <li>Regex patterns with preset library (phone, postal code, etc.)</li>
-            <li>File type and size restrictions</li>
-            <li>Conditional required (required only if another field equals X)</li>
-            <li>Custom error messages per rule</li>
-          </ul>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Validation config is stored as JSON in the form schema. The renderer reconstructs Zod schemas at runtime via <code className="bg-card px-1.5 py-0.5 rounded text-xs">zod-builder.ts</code>.
-          </p>
-        </Section>
-
         {/* Limitations */}
-        <Section id="limitations" title="Honest limitations">
-          <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
-            <li>We cannot pin a blob to a specific country on Walrus. We display where shards currently live via Walruscan.</li>
-            <li>Seal key servers run in known jurisdictions — we display this, we do not operate them.</li>
-            <li>GDPR Article 17 erasure is handled via crypto-shredding (Seal key destruction), not Walrus blob deletion.</li>
-            <li>Post-decryption data use cannot be enforced by the protocol. We log all decryption attempts on Sui.</li>
-            <li>Walrus testnet blobs may be garbage-collected after their storage epoch expires.</li>
-          </ul>
+        <Section id="limitations" title="honest limitations">
+          <div className="neo-card bg-info p-8 border-border-strong shadow-brutal">
+            <ul className="space-y-4">
+              {[
+                'we cannot pin a blob to a specific country on walrus.',
+                'seal key servers run in known jurisdictions.',
+                'GDPR erasure is handled via crypto-shredding (key destruction).',
+                'walrus testnet blobs may be garbage-collected after expiry.',
+              ].map((lim, i) => (
+                <li key={i} className="flex gap-4 items-start">
+                  <span className="text-accent text-lg font-black">&bull;</span>
+                  <span className="text-sm font-bold text-info-foreground/80 lowercase leading-tight">{lim}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 px-6 py-8 mt-16">
-        <div className="max-w-4xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
-          <span>Sonar — Built for Walrus Sessions 2</span>
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+      <footer className="border-t-4 border-border-strong bg-card px-6 py-12">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3 font-black lowercase">
+            <div className="w-8 h-8 rounded-lg bg-cta text-cta-foreground border-2 border-border-strong flex items-center justify-center shadow-brutal-sm">s</div>
+            <span>sonar</span>
+          </div>
+          <Link href="/" className="neo-btn bg-accent px-6 py-2 text-xs">back home</Link>
         </div>
       </footer>
     </div>
@@ -203,16 +199,18 @@ GET https://aggregator.walrus-testnet.walrus.space/v1/blobs/<blobId>`}</CodeBloc
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="mb-16">
-      <h2 className="text-2xl font-bold mb-4 scroll-mt-20">{title}</h2>
-      <div className="text-sm leading-relaxed text-foreground/90 space-y-2">{children}</div>
+    <section id={id} className="mb-20">
+      <div className="neo-card bg-card p-10 sm:p-14 shadow-brutal-lg">
+        <h2 className="text-4xl mb-8 scroll-mt-32">{title}</h2>
+        <div className="space-y-4">{children}</div>
+      </div>
     </section>
   );
 }
 
 function CodeBlock({ children }: { children: string }) {
   return (
-    <pre className="bg-card border border-border rounded-xl p-4 overflow-x-auto text-xs font-mono text-muted-foreground mt-3 leading-relaxed">
+    <pre className="neo-card bg-card-cream p-6 overflow-x-auto text-xs font-mono font-bold text-foreground/50 shadow-none border-dashed">
       {children}
     </pre>
   );
@@ -220,11 +218,11 @@ function CodeBlock({ children }: { children: string }) {
 
 function InfoTable({ rows }: { rows: [string, string][] }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
+    <div className="neo-card bg-card-cream overflow-hidden shadow-none border-border-strong/10">
       {rows.map(([label, value], i) => (
-        <div key={label} className={`flex flex-col sm:flex-row gap-1 sm:gap-4 px-5 py-3 ${i !== rows.length - 1 ? 'border-b border-border' : ''}`}>
-          <span className="text-xs text-muted-foreground w-40 shrink-0 font-medium uppercase tracking-wider">{label}</span>
-          <code className="text-sm font-mono break-all">{value}</code>
+        <div key={label} className={`flex flex-col sm:flex-row gap-2 sm:gap-6 px-6 py-4 ${i !== rows.length - 1 ? 'border-b-2 border-border-strong/5' : ''}`}>
+          <span className="text-[10px] font-black uppercase tracking-widest opacity-30 w-32 shrink-0">{label}</span>
+          <code className="text-xs font-mono font-bold text-accent break-all">{value}</code>
         </div>
       ))}
     </div>

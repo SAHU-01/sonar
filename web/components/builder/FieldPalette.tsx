@@ -57,27 +57,31 @@ const fieldGroups: { label: string; fields: { type: FieldType; label: string; ic
 
 export function FieldPalette({ onAddField }: FieldPaletteProps) {
   return (
-    <div className="p-3">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">Fields</p>
-      {fieldGroups.map((group) => (
-        <div key={group.label} className="mb-4">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-1">{group.label}</p>
-          <div className="space-y-1">
-            {group.fields.map((field) => (
-              <button
-                key={field.type}
-                onClick={() => onAddField(field.type)}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-muted text-sm text-left transition-colors group"
-              >
-                <span className="w-7 h-7 rounded bg-card border border-border flex items-center justify-center text-xs font-mono text-muted-foreground group-hover:border-accent/50 group-hover:text-accent transition-colors">
-                  {field.icon}
-                </span>
-                <span className="text-foreground/80 group-hover:text-foreground">{field.label}</span>
-              </button>
-            ))}
-          </div>
+    <div className="p-4 space-y-8">
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 px-1">field palette</p>
+        <div className="space-y-6">
+          {fieldGroups.map((group) => (
+            <div key={group.label}>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-20 mb-2 px-1">{group.label}</p>
+              <div className="grid grid-cols-1 gap-2">
+                {group.fields.map((field) => (
+                  <button
+                    key={field.type}
+                    onClick={() => onAddField(field.type)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl border-2 border-transparent hover:border-border-strong hover:bg-card transition-all group text-left"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-card border-2 border-border-strong flex items-center justify-center text-xs font-black shadow-brutal-sm group-hover:bg-cta group-hover:text-cta-foreground group-hover:shadow-none transition-all">
+                      {field.icon}
+                    </span>
+                    <span className="text-sm font-bold lowercase opacity-70 group-hover:opacity-100">{field.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

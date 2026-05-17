@@ -26,18 +26,22 @@ export default function FormPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sm text-muted-foreground">Loading form...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
+        <div className="text-xl font-black lowercase opacity-30">loading form...</div>
       </div>
     );
   }
 
   if (error || !schema) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Form not found</h2>
-          <p className="text-sm text-muted-foreground">{error ?? 'Unable to load this form.'}</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-6" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
+        <div className="neo-card bg-card p-12 text-center max-w-md shadow-brutal-lg">
+          <div className="w-20 h-20 rounded-2xl bg-destructive border-2 border-border-strong flex items-center justify-center mx-auto mb-8 shadow-brutal-sm">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </div>
+          <h2 className="text-4xl mb-4">form not found</h2>
+          <p className="text-lg font-bold opacity-60 lowercase leading-tight">{error ?? 'unable to load this form.'}</p>
+          <a href="/" className="neo-btn bg-accent mt-10 inline-block px-8 py-3 text-sm">back home</a>
         </div>
       </div>
     );

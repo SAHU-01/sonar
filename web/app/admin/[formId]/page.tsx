@@ -9,8 +9,11 @@ import { useParams } from 'next/navigation';
 import { suiClient, PACKAGE_ID } from '@/lib/sui';
 import { fetchBlobAsText } from '@/lib/walrus';
 import { AnalyticsTab } from '@/components/dashboard/AnalyticsTab';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { ResponseDetail } from '@/components/dashboard/ResponseDetail';
+import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import type { FormSchemaType } from '@sonar/shared/schema';
 
 interface SubmissionEntry {
@@ -25,6 +28,7 @@ interface SubmissionEntry {
 
 export default function AdminPage() {
   const { formId } = useParams<{ formId: string }>();
+  const account = useCurrentAccount();
   const [submissions, setSubmissions] = useState<SubmissionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [formSchema, setFormSchema] = useState<FormSchemaType | null>(null);
@@ -138,82 +142,89 @@ export default function AdminPage() {
   };
 
   const tabs = [
-    { id: 'responses' as const, label: 'Responses', count: submissions.length },
-    { id: 'analytics' as const, label: 'Analytics' },
-    { id: 'settings' as const, label: 'Settings' },
+    { id: 'responses' as const, label: 'responses', count: submissions.length },
+    { id: 'analytics' as const, label: 'analytics' },
+    { id: 'settings' as const, label: 'settings' },
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
       {/* Nav */}
-      <nav className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link href="/" className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xs shrink-0">S</Link>
-            <span className="text-muted-foreground hidden sm:inline">/</span>
-            <span className="font-semibold truncate">{formSchema?.title ?? 'Dashboard'}</span>
+      <nav className="px-4 sm:px-6 py-6 bg-card/30 border-b-4 border-border-strong mb-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link href="/" className="w-10 h-10 rounded-xl neo-btn-cta text-cta-foreground flex items-center justify-center font-black text-xl shadow-brutal-sm shrink-0">s</Link>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-black uppercase tracking-widest opacity-40">dashboard</span>
+              <h1 className="text-xl truncate lowercase">{formSchema?.title ?? 'loading...'}</h1>
+            </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 text-sm shrink-0">
-            <Link href={`/f/${formId}`} className="text-muted-foreground hover:text-foreground hidden sm:inline">View form</Link>
-            <Link href={`/verify/${formId}`} className="text-muted-foreground hover:text-foreground text-xs sm:text-sm">Verify</Link>
+          <div className="flex items-center gap-4 text-sm shrink-0">
+            {account && (
+              <Link href="/dashboard" className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">dashboard</Link>
+            )}
+            <Link href={`/f/${formId}`} className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">view form</Link>
+            <Link href={`/verify/${formId}`} className="hidden sm:inline font-black lowercase hover:text-accent transition-colors">verify</Link>
+            <ThemeToggle />
+            <ConnectButton />
           </div>
         </div>
       </nav>
 
-      {/* Tabs */}
-      <div className="border-b border-border px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex gap-0">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-20">
+        {/* Tabs */}
+        <div className="flex gap-4 mb-10 overflow-x-auto pb-2 scrollbar-none">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+              className={`px-8 py-3 text-base whitespace-nowrap transition-all ${
+                activeTab === tab.id ? 'neo-btn-cta text-cta-foreground' : 'neo-btn bg-card opacity-60 hover:opacity-100'
               }`}
             >
               {tab.label}
-              {tab.count !== undefined && <span className="ml-1.5 text-xs bg-muted px-1.5 py-0.5 rounded-full">{tab.count}</span>}
+              {tab.count !== undefined && <span className={`ml-3 text-xs px-2 py-0.5 rounded-lg ${activeTab === tab.id ? 'bg-black/10' : 'bg-foreground/10'}`}>{tab.count}</span>}
             </button>
           ))}
         </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto">
         {activeTab === 'responses' && (
-          <div className="p-4 sm:p-6">
+          <div className="space-y-8">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="neo-card bg-card p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-6">
+              <div className="flex flex-1 items-center gap-4">
                 <input
-                  placeholder="Search submissions..."
+                  placeholder="search submissions..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="bg-card border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent w-full sm:max-w-xs"
+                  className="neo-input flex-1 sm:max-w-md font-bold"
                 />
                 {selectedRows.size > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{selectedRows.size} selected</span>
-                    {(['reviewed', 'resolved', 'new'] as const).map(st => (
-                      <button
-                        key={st}
-                        onClick={() => {
-                          selectedRows.forEach(idx => {
-                            const s = filteredSubmissions[idx];
-                            if (s) setSubmissionStatus(s.blobId, st);
-                          });
-                          setSelectedRows(new Set());
-                        }}
-                        className="text-[10px] bg-card border border-border rounded px-2 py-1 hover:bg-muted transition-colors"
-                      >
-                        Mark {st}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-black uppercase tracking-widest opacity-40 whitespace-nowrap">{selectedRows.size} selected</span>
+                    <div className="flex gap-2">
+                      {(['reviewed', 'resolved', 'new'] as const).map(st => (
+                        <button
+                          key={st}
+                          onClick={() => {
+                            selectedRows.forEach(idx => {
+                              const s = filteredSubmissions[idx];
+                              if (s) setSubmissionStatus(s.blobId, st);
+                            });
+                            setSelectedRows(new Set());
+                          }}
+                          className="neo-btn bg-card px-4 py-1.5 text-xs shadow-brutal-sm hover:bg-muted"
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={exportCSV} className="text-xs bg-card border border-border rounded-lg px-3 py-2 hover:bg-muted transition-colors">
-                  Export CSV
+              <div className="flex items-center gap-3">
+                <button onClick={exportCSV} className="neo-btn-cta text-cta-foreground px-6 py-2.5 text-sm">
+                  export csv &rarr;
                 </button>
                 <button
                   onClick={() => {
@@ -224,27 +235,27 @@ export default function AdminPage() {
                     a.href = url; a.download = 'submissions.json'; a.click();
                     URL.revokeObjectURL(url);
                   }}
-                  className="text-xs bg-card border border-border rounded-lg px-3 py-2 hover:bg-muted transition-colors"
+                  className="neo-btn bg-accent px-6 py-2.5 text-sm"
                 >
-                  Export JSON
+                  export json
                 </button>
               </div>
             </div>
 
             {/* Table */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="neo-card bg-card overflow-hidden">
               {loading ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">Loading from Sui events...</div>
+                <div className="p-20 text-center font-black opacity-30 lowercase">loading from sui events...</div>
               ) : filteredSubmissions.length === 0 ? (
-                <div className="p-12 text-center text-sm text-muted-foreground">
-                  {searchQuery ? 'No submissions match your search' : 'No submissions yet'}
+                <div className="p-20 text-center font-black opacity-30 lowercase">
+                  {searchQuery ? 'no submissions match your search' : 'no submissions yet'}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-border text-left bg-muted/30">
-                        <th className="px-4 py-2.5 w-8">
+                      <tr className="border-b-4 border-border-strong bg-muted/20">
+                        <th className="px-6 py-4 w-12">
                           <input
                             type="checkbox"
                             checked={selectedRows.size === filteredSubmissions.length && filteredSubmissions.length > 0}
@@ -252,51 +263,51 @@ export default function AdminPage() {
                               if (e.target.checked) setSelectedRows(new Set(filteredSubmissions.map((_, i) => i)));
                               else setSelectedRows(new Set());
                             }}
-                            className="accent-accent"
+                            className="w-5 h-5 accent-cta border-2 border-border-strong rounded shadow-brutal-sm"
                           />
                         </th>
-                        <th className="px-4 py-2.5 text-xs text-muted-foreground font-medium">#</th>
-                        <th className="px-4 py-2.5 text-xs text-muted-foreground font-medium">Time</th>
-                        <th className="px-4 py-2.5 text-xs text-muted-foreground font-medium">Submitter</th>
-                        <th className="px-4 py-2.5 text-xs text-muted-foreground font-medium">Status</th>
+                        <th className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">#</th>
+                        <th className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">time</th>
+                        <th className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">submitter</th>
+                        <th className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">status</th>
                         {formSchema?.fields.slice(0, 3).filter(f => !['section_header', 'description_block'].includes(f.type)).map(f => (
-                          <th key={f.id} className="px-4 py-2.5 text-xs text-muted-foreground font-medium">{f.label}</th>
+                          <th key={f.id} className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">{f.label}</th>
                         ))}
-                        <th className="px-4 py-2.5 text-xs text-muted-foreground font-medium">Blob</th>
+                        <th className="px-6 py-4 text-xs font-black uppercase tracking-widest opacity-50">blob</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y-2 divide-border-strong/10">
                       {filteredSubmissions.map((s, i) => (
                         <tr
                           key={i}
                           onClick={() => setSelectedIdx(i)}
-                          className={`border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent/5' : 'hover:bg-muted/30'}`}
+                          className={`cursor-pointer transition-colors group ${selectedIdx === i ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                         >
-                          <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleRow(i); }}>
-                            <input type="checkbox" checked={selectedRows.has(i)} onChange={() => toggleRow(i)} className="accent-accent" />
+                          <td className="px-6 py-5" onClick={e => { e.stopPropagation(); toggleRow(i); }}>
+                            <input type="checkbox" checked={selectedRows.has(i)} onChange={() => toggleRow(i)} className="w-5 h-5 accent-cta" />
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
-                          <td className="px-4 py-3 text-xs font-mono">{s.timestamp ? new Date(s.timestamp).toLocaleString() : '-'}</td>
-                          <td className="px-4 py-3 text-xs font-mono">{s.submitter.slice(0, 6)}...{s.submitter.slice(-4)}</td>
-                          <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                          <td className="px-6 py-5 font-black opacity-30">{i + 1}</td>
+                          <td className="px-6 py-5 text-sm font-bold opacity-70">{s.timestamp ? new Date(s.timestamp).toLocaleString() : '-'}</td>
+                          <td className="px-6 py-5 text-sm font-mono font-bold opacity-70">{s.submitter.slice(0, 6)}...{s.submitter.slice(-4)}</td>
+                          <td className="px-6 py-5" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => {
                                 const cycle: Record<string, SubmissionEntry['status']> = { new: 'reviewed', reviewed: 'resolved', resolved: 'new' };
                                 setSubmissionStatus(s.blobId, cycle[s.status]);
                               }}
-                              className={`text-[10px] font-medium px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
-                                s.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' :
-                                s.status === 'reviewed' ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' :
-                                'bg-muted text-muted-foreground hover:bg-muted/80'
+                              className={`neo-btn px-4 py-1 text-[10px] shadow-brutal-sm ${
+                                s.status === 'resolved' ? 'bg-success' :
+                                s.status === 'reviewed' ? 'bg-accent' :
+                                'bg-card'
                               }`}
                             >{s.status}</button>
                           </td>
                           {formSchema?.fields.slice(0, 3).filter(f => !['section_header', 'description_block'].includes(f.type)).map(f => (
-                            <td key={f.id} className="px-4 py-3 text-xs max-w-[150px] truncate">
+                            <td key={f.id} className="px-6 py-5 text-sm font-bold max-w-[200px] truncate">
                               {s.loading ? '...' : s.data?.[f.id] !== undefined ? String(s.data[f.id]) : '-'}
                             </td>
                           ))}
-                          <td className="px-4 py-3 text-xs font-mono text-accent">{s.blobId.slice(0, 12)}...</td>
+                          <td className="px-6 py-5 text-sm font-mono font-bold text-accent">{s.blobId.slice(0, 12)}...</td>
                         </tr>
                       ))}
                     </tbody>
@@ -319,29 +330,46 @@ export default function AdminPage() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="p-6 max-w-2xl">
-            <h2 className="font-semibold mb-6">Form settings</h2>
-
-            {formSchema && (
-              <div className="space-y-6">
-                <SettingRow label="Title" value={formSchema.title} />
-                <SettingRow label="Version" value={String(formSchema.version)} />
-                <SettingRow label="Encryption" value={formSchema.encryption?.enabled ? 'Enabled' : 'Disabled'} />
-                <SettingRow label="Access control" value={formSchema.accessControl?.type ?? 'public'} />
-                <SettingRow label="Submission limit" value={formSchema.submissionLimit ?? 'open'} />
-                <SettingRow label="Success message" value={formSchema.successMessage ?? 'Thanks for your submission!'} />
-                <SettingRow label="Form Object ID" value={formId ?? ''} mono />
-                <SettingRow label="Package ID" value={PACKAGE_ID} mono />
-
-                <div className="pt-6 border-t border-border">
-                  <h3 className="font-semibold text-sm text-red-400 mb-3">Danger zone</h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Forms on Sui cannot be deleted. You can archive a form to stop accepting new submissions.
-                    Existing submissions on Walrus persist regardless.
-                  </p>
+          <div className="space-y-10 max-w-3xl">
+            <div className="neo-card bg-card p-10">
+              <h2 className="text-4xl mb-8">form settings</h2>
+              {formSchema && (
+                <div className="space-y-8">
+                  <SettingRow label="title" value={formSchema.title} />
+                  <SettingRow label="version" value={String(formSchema.version)} />
+                  <SettingRow label="encryption" value={formSchema.encryption?.enabled ? 'enabled' : 'disabled'} />
+                  <SettingRow label="access control" value={formSchema.accessControl?.type ?? 'public'} />
+                  <SettingRow label="submission limit" value={formSchema.submissionLimit ?? 'open'} />
+                  <SettingRow label="success message" value={formSchema.successMessage ?? 'thanks for your submission!'} />
+                  <SettingRow label="form object id" value={formId ?? ''} mono />
+                  <SettingRow label="package id" value={PACKAGE_ID} mono />
                 </div>
+              )}
+            </div>
+
+            <div className="neo-card bg-card p-10">
+              <h2 className="text-3xl mb-8">storage usage</h2>
+              <StorageUsage submissionCount={submissions.length} />
+            </div>
+
+            <div className="neo-card bg-card p-10">
+              <h2 className="text-3xl mb-8">quick links</h2>
+              <div className="grid gap-6">
+                <SettingLink label="respondent url" href={`/f/${formId}`} />
+                <SettingLink label="embed url" href={`/f/${formId}?embed=true`} />
+                <SettingLink label="verification page" href={`/verify/${formId}`} />
+                <SettingLink label="edit form" href={`/edit/${formId}`} />
               </div>
-            )}
+            </div>
+
+            <div className="neo-card bg-info p-10 border-border-strong shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <h2 className="text-3xl text-info-foreground mb-4">danger zone</h2>
+              <p className="font-bold text-info-foreground/70 leading-tight mb-8 lowercase">
+                forms on sui cannot be deleted — they are shared objects. existing submissions on walrus persist regardless.
+                archiving stops the form from accepting new responses.
+              </p>
+              <button className="neo-btn bg-destructive px-8 py-3 text-white">archive form</button>
+            </div>
           </div>
         )}
       </main>
@@ -362,9 +390,64 @@ export default function AdminPage() {
 
 function SettingRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-muted-foreground shrink-0">{label}</span>
-      <span className={`text-sm text-right break-all ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b-2 border-border-strong/5 pb-6 last:border-0 last:pb-0">
+      <span className="text-xs font-black uppercase tracking-widest opacity-40 shrink-0">{label}</span>
+      <span className={`font-bold sm:text-right break-all ${mono ? 'font-mono text-xs text-accent' : 'text-lg lowercase'}`}>{value}</span>
+    </div>
+  );
+}
+
+function SettingLink({ label, href }: { label: string; href: string }) {
+  const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${href}` : href;
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <span className="text-xs font-black uppercase tracking-widest opacity-40">{label}</span>
+      <div className="flex items-center gap-4 flex-1 sm:justify-end">
+        <code className="neo-card bg-card-cream px-4 py-2 text-xs font-mono font-bold opacity-70 truncate max-w-md shadow-none">{href}</code>
+        <button
+          onClick={() => { 
+            navigator.clipboard.writeText(fullUrl); 
+            toast.success('link copied!');
+          }}
+          className="neo-btn bg-cta text-cta-foreground px-4 py-2 text-xs"
+        >
+          copy
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const FREE_TIER_MB = 100;
+
+function StorageUsage({ submissionCount }: { submissionCount: number }) {
+  const estimatedKB = submissionCount * 3;
+  const estimatedMB = estimatedKB / 1024;
+  const percent = Math.min((estimatedMB / FREE_TIER_MB) * 100, 100);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-black uppercase tracking-widest opacity-40">estimated usage</span>
+        <span className="font-black text-2xl">
+          {estimatedMB < 1 ? `${estimatedKB.toFixed(0)}kb` : `${estimatedMB.toFixed(1)}mb`} <span className="text-sm opacity-20">/ {FREE_TIER_MB}mb</span>
+        </span>
+      </div>
+      <div className="w-full neo-card bg-muted border-border-strong h-10 overflow-hidden shadow-brutal-sm">
+        <div
+          className={`h-full border-r-4 border-border-strong transition-all ${percent > 80 ? 'bg-warning' : percent > 95 ? 'bg-destructive' : 'bg-accent'}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between text-xs font-black opacity-40 uppercase tracking-widest">
+        <span>free tier: {FREE_TIER_MB}mb per form</span>
+        <span>{submissionCount} submissions recorded</span>
+      </div>
+      {percent > 80 && (
+        <div className="neo-card bg-warning p-4 border-border-strong text-xs font-bold">
+          approaching free tier limit. file uploads consume more storage.
+        </div>
+      )}
     </div>
   );
 }

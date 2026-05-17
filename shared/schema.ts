@@ -61,6 +61,7 @@ export const FormSchema = z.object({
   successMessage: z.string().default('Thanks for your submission!'),
   redirectUrl: z.string().url().optional(),
   submissionLimit: z.enum(['per_wallet', 'open']).default('open'),
+  allowEditing: z.boolean().default(false),
   closeDate: z.string().datetime().optional(),
   accessControl: z.object({
     type: z.enum(['public', 'wallet_gated', 'nft_gated', 'allowlist']),

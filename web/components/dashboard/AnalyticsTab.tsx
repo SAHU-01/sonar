@@ -22,7 +22,7 @@ interface AnalyticsTabProps {
   fields: Array<{ id: string; type: string; label: string; options?: string[] }>;
 }
 
-const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#818cf8', '#4f46e5', '#7c3aed', '#6d28d9'];
+const COLORS = ['#b08af0', '#e3ff73', '#ff8c42', '#22c55e', '#ef4444', '#6366f1', '#f59e0b', '#000000'];
 
 export function AnalyticsTab({ submissions, fields }: AnalyticsTabProps) {
   const stats = useMemo(() => computeStats(submissions), [submissions]);
@@ -30,96 +30,98 @@ export function AnalyticsTab({ submissions, fields }: AnalyticsTabProps) {
   const fieldBreakdowns = useMemo(() => computeFieldBreakdowns(submissions, fields), [submissions, fields]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
+    <div className="space-y-10 p-6">
       {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total submissions" value={String(stats.total)} />
-        <StatCard label="Today" value={String(stats.today)} />
-        <StatCard label="This week" value={String(stats.thisWeek)} />
-        <StatCard label="Unique submitters" value={String(stats.uniqueSubmitters)} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="total submissions" value={String(stats.total)} />
+        <StatCard label="today" value={String(stats.today)} />
+        <StatCard label="this week" value={String(stats.thisWeek)} />
+        <StatCard label="unique submitters" value={String(stats.uniqueSubmitters)} />
       </div>
 
       {/* Submissions over time */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <h3 className="font-semibold text-sm mb-4">Submissions over time</h3>
+      <div className="neo-card bg-card p-8 shadow-brutal">
+        <h3 className="text-2xl mb-8">submissions over time</h3>
         {timeseriesData.length > 1 ? (
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={timeseriesData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#a1a1aa' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" opacity={0.1} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fontWeight: 900, fill: 'var(--foreground)' }} stroke="var(--border)" />
+              <YAxis tick={{ fontSize: 10, fontWeight: 900, fill: 'var(--foreground)' }} stroke="var(--border)" allowDecimals={false} />
               <Tooltip
-                contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#a1a1aa' }}
+                contentStyle={{ background: 'var(--card)', border: '2px solid var(--border-strong)', borderRadius: 12, fontSize: 12, fontWeight: 900, boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }}
               />
-              <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="stepAfter" dataKey="count" stroke="var(--accent)" strokeWidth={4} dot={{ r: 6, fill: 'var(--accent)', strokeWidth: 2, stroke: 'var(--border-strong)' }} />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-8">Not enough data for chart</p>
+          <div className="p-20 text-center font-black opacity-20 lowercase">not enough data for chart</div>
         )}
       </div>
 
       {/* Field breakdowns */}
-      {fieldBreakdowns.map((fb) => (
-        <div key={fb.fieldId} className="bg-card border border-border rounded-xl p-5">
-          <h3 className="font-semibold text-sm mb-4">{fb.label}</h3>
-          {fb.type === 'bar' && fb.data.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={fb.data} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#a1a1aa' }} width={120} />
-                <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : fb.type === 'pie' && fb.data.length > 0 ? (
-            <div className="flex items-center gap-6">
-              <ResponsiveContainer width={180} height={180}>
-                <PieChart>
-                  <Pie data={fb.data} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={0}>
-                    {fb.data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8, fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-1.5 text-xs">
-                {fb.data.map((d, i) => (
-                  <div key={d.name} className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-sm" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span className="text-muted-foreground">{d.name}</span>
-                    <span className="font-medium">{d.count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : fb.type === 'rating' ? (
-            <div className="space-y-2">
-              <p className="text-2xl font-bold">{fb.average?.toFixed(1)} <span className="text-sm text-muted-foreground font-normal">average</span></p>
-              <ResponsiveContainer width="100%" height={120}>
-                <BarChart data={fb.data}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#a1a1aa' }} />
-                  <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 8, fontSize: 12 }} />
-                  <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {fieldBreakdowns.map((fb) => (
+          <div key={fb.fieldId} className="neo-card bg-card p-8 shadow-brutal">
+            <h3 className="text-xl mb-6">{fb.label}</h3>
+            {fb.type === 'bar' && fb.data.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={fb.data} layout="vertical">
+                  <XAxis type="number" tick={{ fontSize: 10, fontWeight: 900 }} stroke="var(--border)" hide />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} width={100} stroke="var(--border)" />
+                  <Tooltip contentStyle={{ background: 'var(--card)', border: '2px solid var(--border-strong)', borderRadius: 12, fontSize: 12, fontWeight: 900, boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }} />
+                  <Bar dataKey="count" fill="var(--cta)" stroke="var(--border-strong)" strokeWidth={2} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No data</p>
-          )}
-        </div>
-      ))}
+            ) : fb.type === 'pie' && fb.data.length > 0 ? (
+              <div className="flex flex-col sm:flex-row items-center gap-8">
+                <ResponsiveContainer width={200} height={200}>
+                  <PieChart>
+                    <Pie data={fb.data} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} stroke="var(--border-strong)" strokeWidth={2}>
+                      {fb.data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: 'var(--card)', border: '2px solid var(--border-strong)', borderRadius: 12, fontSize: 12, fontWeight: 900, boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-1 gap-3">
+                  {fb.data.map((d, i) => (
+                    <div key={d.name} className="flex items-center gap-3">
+                      <div className="w-4 h-4 border-2 border-border-strong shadow-brutal-sm rounded-sm" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span className="text-xs font-black lowercase opacity-60">{d.name}</span>
+                      <span className="text-xs font-black">{d.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : fb.type === 'rating' ? (
+              <div className="space-y-6">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black">{fb.average?.toFixed(1)}</span>
+                  <span className="text-xs font-black uppercase tracking-widest opacity-30">average rating</span>
+                </div>
+                <ResponsiveContainer width="100%" height={150}>
+                  <BarChart data={fb.data}>
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fontWeight: 900 }} stroke="var(--border)" />
+                    <Tooltip contentStyle={{ background: 'var(--card)', border: '2px solid var(--border-strong)', borderRadius: 12, fontSize: 12, fontWeight: 900, boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }} />
+                    <Bar dataKey="count" fill="var(--warning)" stroke="var(--border-strong)" strokeWidth={2} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="p-10 text-center font-black opacity-20 lowercase">no data available</div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4">
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
+    <div className="neo-card bg-card p-6 shadow-brutal-sm hover:-translate-y-1 transition-transform">
+      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">{label}</p>
+      <p className="text-4xl font-black">{value}</p>
     </div>
   );
 }

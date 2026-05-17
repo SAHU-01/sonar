@@ -1,14 +1,57 @@
 @import "tailwindcss";
 
+/* ── Neobrutalist Theme (Light mode default) ── */
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --border: #27272a;
-  --card: #18181b;
+  --background: #d8c7ff; /* Soft lavender/purple background */
+  --foreground: #000000;
+  --accent: #b08af0; /* Purple/Lavender */
+  --accent-hover: #9d73eb;
+  --accent-soft: #f4eaf8;
+  --cta: #e3ff73; /* Bright lime green */
+  --cta-hover: #d1f04d;
+  --cta-foreground: #000000;
+  --muted: #f4eaf8;
+  --muted-foreground: #6b5a8e;
+  --border: #000000;
+  --border-strong: #000000;
+  --border-warm: #ff8c42; /* Vibrant orange/coral */
+  --card: #ffffff;
+  --card-cream: #faf5ee;
+  --info: #ffe5a3; /* Warm yellow/orange for info boxes */
+  --info-foreground: #5c4300;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+  --gradient-start: #e1d4ff;
+  --gradient-end: #f4eaf8;
+  color-scheme: light;
+}
+
+/* ── Neobrutalist Theme (Dark mode) ── */
+.dark {
+  --background: #121016;
+  --foreground: #ffffff;
+  --accent: #b08af0;
+  --accent-hover: #c4a4ff;
+  --accent-soft: #1e1530;
+  --cta: #e3ff73;
+  --cta-hover: #d1f04d;
+  --cta-foreground: #000000;
+  --muted: #1c1825;
+  --muted-foreground: #a394bf;
+  --border: #ffffff;
+  --border-strong: #ffffff;
+  --border-warm: #ff8c42;
+  --card: #1c1825;
+  --card-cream: #252031;
+  --info: #3d331a;
+  --info-foreground: #ffe5a3;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --destructive: #f87171;
+  --gradient-start: #121016;
+  --gradient-end: #1c1825;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -16,20 +59,64 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-cta: var(--cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-cta-foreground: var(--cta-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-warm: var(--border-warm);
   --color-card: var(--card);
-  --font-sans: var(--font-geist-sans);
+  --color-card-cream: var(--card-cream);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --font-sans: var(--font-nunito);
   --font-mono: var(--font-geist-mono);
+
+  --shadow-brutal: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-sm: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-lg: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+  
+  --shadow-brutal-white: 4px 4px 0px 0px rgba(255, 255, 255, 1);
+}
+
+/* Custom Utilities */
+@utility neo-btn {
+  @apply border-2 border-border-strong rounded-xl font-black transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0 active:translate-y-0 shadow-brutal hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)];
+}
+
+@utility neo-btn-cta {
+  @apply neo-btn bg-cta text-cta-foreground hover:bg-cta-hover hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)];
+}
+
+@utility neo-card {
+  @apply border-2 border-border-strong rounded-2xl shadow-brutal bg-card transition-all;
+}
+
+@utility neo-input {
+  @apply border-2 border-border-strong rounded-xl px-4 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-accent shadow-brutal-sm;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-nunito), sans-serif;
 }
 
 ::selection {
-  background: var(--accent);
-  color: white;
+  background: var(--cta);
+  color: var(--cta-foreground);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border); border: 2px solid var(--background); border-radius: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  @apply lowercase tracking-tight font-black;
 }

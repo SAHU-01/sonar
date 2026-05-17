@@ -40,8 +40,8 @@ export default function EditFormPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading form...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background" style={{ background: 'linear-gradient(180deg, var(--gradient-start) 0%, var(--background) 100%)' }}>
+        <p className="text-xl font-black lowercase opacity-30">loading form...</p>
       </div>
     );
   }
